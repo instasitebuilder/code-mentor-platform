@@ -17,6 +17,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/solve/:id" element={<SolvePage />} />
+          <Route path="/self-practice" element={<SolvePage />} />
+          <Route path="/peer-practice" element={<SolvePage />} />
+          <Route path="/mentor-practice" element={<SolvePage />} />
+          <Route path="/org-practice" element={<SolvePage />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

@@ -1,54 +1,55 @@
-import { QuestionCard } from "@/components/QuestionCard";
+import { User, Users, UserCheck, Building } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { PracticeModeCard } from "@/components/PracticeModeCard";
 
-const questions = [
+const practiceModes = [
   {
-    id: 1,
-    title: "Two Sum",
-    difficulty: "Easy",
-    tags: ["Arrays", "Hash Table"],
+    title: "Self Practice",
+    description: "Practice coding problems at your own pace with detailed feedback.",
+    icon: User,
+    route: "/self-practice",
   },
   {
-    id: 2,
-    title: "Valid Parentheses",
-    difficulty: "Easy",
-    tags: ["Stack", "String"],
+    title: "Peer Practice",
+    description: "Practice with up to 5 peers and learn together.",
+    icon: Users,
+    route: "/peer-practice",
   },
   {
-    id: 3,
-    title: "Merge Two Sorted Lists",
-    difficulty: "Easy",
-    tags: ["Linked List", "Recursion"],
+    title: "Mentor Practice",
+    description: "Get guidance from experienced mentors while solving problems.",
+    icon: UserCheck,
+    route: "/mentor-practice",
   },
   {
-    id: 4,
-    title: "Maximum Subarray",
-    difficulty: "Medium",
-    tags: ["Array", "Dynamic Programming"],
-  },
-  {
-    id: 5,
-    title: "Binary Tree Level Order Traversal",
-    difficulty: "Medium",
-    tags: ["Tree", "BFS"],
+    title: "Organization Practice",
+    description: "Join your organization's coding practice sessions.",
+    icon: Building,
+    route: "/org-practice",
   },
 ];
 
 export default function Index() {
   return (
-    <div className="container py-8">
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold">Coding Practice</h1>
-          <p className="text-muted-foreground mt-2">
-            Solve coding challenges to improve your skills
-          </p>
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1 container py-8">
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-4xl font-bold">Welcome to CodePractice</h1>
+            <p className="text-muted-foreground mt-2">
+              Choose your practice mode to get started
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {practiceModes.map((mode) => (
+              <PracticeModeCard key={mode.title} {...mode} />
+            ))}
+          </div>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {questions.map((question) => (
-            <QuestionCard key={question.id} {...question} />
-          ))}
-        </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }
