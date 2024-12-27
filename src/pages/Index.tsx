@@ -31,7 +31,7 @@ const questions = [
     difficulty: "Medium",
     tags: ["Tree", "BFS"],
   },
-] as const;
+];
 
 export default function Index() {
   return (
