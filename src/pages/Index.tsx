@@ -32,17 +32,19 @@ const practiceModes = [
 
 export default function Index() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#fdfcfb] to-[#e2d1c3] dark:from-gray-900 dark:to-gray-800">
       <Navbar />
-      <main className="flex-1 container py-8">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-4xl font-bold">Welcome to CodePractice</h1>
-            <p className="text-muted-foreground mt-2">
+      <main className="flex-1 container py-12">
+        <div className="space-y-12">
+          <div className="text-center space-y-4 animate-fade-in">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
+              Welcome to CodePractice
+            </h1>
+            <p className="text-xl text-muted-foreground">
               Choose your practice mode to get started
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 animate-fade-in">
             {practiceModes.map((mode) => (
               <PracticeModeCard key={mode.title} {...mode} />
             ))}
