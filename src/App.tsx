@@ -11,6 +11,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import About from "./pages/About";
 import Services from "./pages/Services";
+import Topics from "./pages/Topics";
+import TopicQuestions from "./pages/TopicQuestions";
 import SolvePage from "./pages/SolvePage";
 
 const queryClient = new QueryClient();
@@ -32,8 +34,9 @@ const App = () => (
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/services" element={<Services />} />
+                  <Route path="/self-practice" element={<Topics />} />
+                  <Route path="/topic/:id" element={<TopicQuestions />} />
                   <Route path="/solve/:id" element={<SolvePage />} />
-                  <Route path="/self-practice" element={<SolvePage />} />
                   <Route path="/peer-practice" element={<SolvePage />} />
                   <Route path="/mentor-practice" element={<SolvePage />} />
                   <Route path="/org-practice" element={<SolvePage />} />
