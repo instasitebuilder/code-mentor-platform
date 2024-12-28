@@ -19,27 +19,71 @@ export default function Login() {
     setLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+      });
+
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          toast({
+            title: "Login Failed",
+            description: "Please check your email and password and try again.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes("Email not confirmed")) {
+          toast({
+            title: "Email Not Verified",
+            description: "Please check your email and verify your account before logging in.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      if (user) {
+        toast({
+          title: "Success!",
+          description: "You have successfully logged in.",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
       });
 
       if (error) throw error;
 
       toast({
-        title: "Success!",
-        description: "You have successfully logged in.",
+        title: "Verification Email Sent",
+        description: "Please check your email for the verification link.",
       });
-      
-      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -76,6 +120,14 @@ export default function Login() {
                   required
                 />
               </div>
+              <Button
+                type="button"
+                variant="link"
+                className="px-0 text-sm"
+                onClick={handleResendVerification}
+              >
+                Resend verification email
+              </Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button 
