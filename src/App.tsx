@@ -7,6 +7,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import About from "./pages/About";
+import Services from "./pages/Services";
 import SolvePage from "./pages/SolvePage";
 
 const queryClient = new QueryClient();
@@ -24,6 +28,10 @@ const App = () => (
               <main className="flex-1">
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/services" element={<Services />} />
                   <Route path="/solve/:id" element={<SolvePage />} />
                   <Route path="/self-practice" element={<SolvePage />} />
                   <Route path="/peer-practice" element={<SolvePage />} />
