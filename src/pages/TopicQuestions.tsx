@@ -6,13 +6,13 @@ const questionsData = {
     {
       id: 1,
       title: "Two Sum",
-      difficulty: "Easy",
+      difficulty: "Easy" as const,
       tags: ["Arrays", "Hash Table"],
     },
     {
       id: 2,
       title: "Maximum Subarray",
-      difficulty: "Medium",
+      difficulty: "Medium" as const,
       tags: ["Arrays", "Dynamic Programming"],
     },
   ],
@@ -20,7 +20,7 @@ const questionsData = {
     {
       id: 3,
       title: "Reverse Linked List",
-      difficulty: "Easy",
+      difficulty: "Easy" as const,
       tags: ["Linked List"],
     },
   ],
@@ -28,7 +28,7 @@ const questionsData = {
     {
       id: 4,
       title: "Binary Tree Traversal",
-      difficulty: "Medium",
+      difficulty: "Medium" as const,
       tags: ["Tree", "DFS"],
     },
   ],
