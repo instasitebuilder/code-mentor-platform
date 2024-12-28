@@ -35,6 +35,7 @@ export function SignupForm({ onGoogleSignup }: SignupFormProps) {
     setLoading(true);
     
     try {
+      // First, create the user in auth.users
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -49,20 +50,25 @@ export function SignupForm({ onGoogleSignup }: SignupFormProps) {
 
       if (signUpError) throw signUpError;
 
-      if (user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: user.id,
-              name,
-              email,
-              college,
-            }
-          ]);
-
-        if (profileError) throw profileError;
+      if (!user) {
+        throw new Error("User creation failed");
       }
+
+      // Then create their profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: user.id,
+            name,
+            email,
+            college,
+          }
+        ])
+        .select()
+        .single();
+
+      if (profileError) throw profileError;
 
       toast({
         title: "Success!",
@@ -71,6 +77,7 @@ export function SignupForm({ onGoogleSignup }: SignupFormProps) {
       
       navigate("/login");
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         title: "Error",
         description: error.message,
