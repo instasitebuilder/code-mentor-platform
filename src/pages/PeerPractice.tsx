@@ -36,7 +36,7 @@ export default function PeerPractice() {
   const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ['peer-sessions', user?.id],
     queryFn: async () => {
-      // First, get all sessions
+      // First, get all sessions with their group data
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('peer_sessions')
         .select(`
@@ -60,7 +60,7 @@ export default function PeerPractice() {
         }));
       }
 
-      // Fetch profiles for all members using their UUIDs
+      // Fetch profiles for all members using their UUIDs directly
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email')
