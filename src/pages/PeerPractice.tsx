@@ -60,7 +60,7 @@ export default function PeerPractice() {
         }));
       }
 
-      // Fetch profiles for all members using their UUIDs directly
+      // Query profiles directly with the member UUIDs we have
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email')
@@ -69,7 +69,7 @@ export default function PeerPractice() {
       if (profilesError) throw profilesError;
 
       // Create a map of user IDs to emails
-      const emailMap = new Map(profilesData?.map(profile => [profile.id, profile.email]));
+      const emailMap = new Map(profilesData?.map(profile => [profile.id, profile.email]) || []);
       
       // Add member emails to each session
       return sessionsData?.map(session => ({
