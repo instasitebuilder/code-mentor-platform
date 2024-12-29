@@ -35,7 +35,14 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !groupId || !date) return;
+    if (!user || !groupId || !date) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const sessionCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -45,7 +52,7 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
         .insert([
           {
             group_id: groupId,
-            date: date.toISOString(),
+            date: format(date, 'yyyy-MM-dd'),
             start_time: startTime,
             end_time: endTime,
             questions,
@@ -63,6 +70,7 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
 
       onOpenChange(false);
     } catch (error) {
+      console.error('Error scheduling session:', error);
       toast({
         title: "Error scheduling session",
         description: "Please try again later.",
@@ -93,12 +101,13 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
                   {date ? format(date, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={date}
                   onSelect={setDate}
                   initialFocus
+                  disabled={(date) => date < new Date()}
                 />
               </PopoverContent>
             </Popover>
