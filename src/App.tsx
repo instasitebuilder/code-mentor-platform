@@ -14,6 +14,7 @@ import Services from "./pages/Services";
 import Topics from "./pages/Topics";
 import TopicQuestions from "./pages/TopicQuestions";
 import SolvePage from "./pages/SolvePage";
+import PeerPractice from "./pages/PeerPractice";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +38,8 @@ const App = () => (
                   <Route path="/self-practice" element={<Topics />} />
                   <Route path="/topic/:id" element={<TopicQuestions />} />
                   <Route path="/solve/:id" element={<SolvePage />} />
-                  <Route path="/peer-practice" element={<SolvePage />} />
+                  <Route path="/peer-practice" element={<PeerPractice />} />
+                  <Route path="/peer-practice/:sessionId" element={<SolvePage />} />
                   <Route path="/mentor-practice" element={<SolvePage />} />
                   <Route path="/org-practice" element={<SolvePage />} />
                 </Routes>
