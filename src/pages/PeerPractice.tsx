@@ -36,6 +36,7 @@ export default function PeerPractice() {
   const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ['peer-sessions', user?.id],
     queryFn: async () => {
+      // First, get all sessions
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('peer_sessions')
         .select(`
@@ -48,10 +49,18 @@ export default function PeerPractice() {
       
       if (sessionsError) throw sessionsError;
 
-      // Fetch user emails for members
+      // Get unique member IDs from all sessions
       const memberIds = sessionsData?.flatMap(session => session.peer_groups?.members || []) || [];
       const uniqueMemberIds = [...new Set(memberIds)];
       
+      if (uniqueMemberIds.length === 0) {
+        return sessionsData?.map(session => ({
+          ...session,
+          memberEmails: []
+        }));
+      }
+
+      // Fetch profiles for all members using their UUIDs
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email')
@@ -59,8 +68,10 @@ export default function PeerPractice() {
       
       if (profilesError) throw profilesError;
 
+      // Create a map of user IDs to emails
       const emailMap = new Map(profilesData?.map(profile => [profile.id, profile.email]));
       
+      // Add member emails to each session
       return sessionsData?.map(session => ({
         ...session,
         memberEmails: (session.peer_groups?.members || []).map(id => emailMap.get(id) || 'Unknown')
