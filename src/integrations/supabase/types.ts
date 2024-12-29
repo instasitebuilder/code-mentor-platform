@@ -9,6 +9,74 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      peer_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          members: string[]
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          members: string[]
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          members?: string[]
+          name?: string
+        }
+        Relationships: []
+      }
+      peer_sessions: {
+        Row: {
+          created_at: string
+          created_by: string
+          date: string
+          end_time: string
+          group_id: string | null
+          id: string
+          questions: string[]
+          session_code: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          date: string
+          end_time: string
+          group_id?: string | null
+          id?: string
+          questions: string[]
+          session_code: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          date?: string
+          end_time?: string
+          group_id?: string | null
+          id?: string
+          questions?: string[]
+          session_code?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peer_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "peer_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           college: string | null
