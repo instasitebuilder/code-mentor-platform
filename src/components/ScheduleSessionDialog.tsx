@@ -32,6 +32,16 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
     setQuestions(newQuestions);
   };
 
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      toast({
+        title: "Date selected",
+        description: `Selected date: ${format(selectedDate, "PPP")}`,
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -105,9 +115,10 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={setDate}
+                  onSelect={handleDateSelect}
                   initialFocus
                   disabled={(date) => date < new Date()}
+                  fromDate={new Date()}
                 />
               </PopoverContent>
             </Popover>
