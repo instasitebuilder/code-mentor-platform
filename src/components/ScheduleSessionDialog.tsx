@@ -6,11 +6,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
 
 interface ScheduleSessionDialogProps {
   open: boolean;
@@ -19,9 +14,8 @@ interface ScheduleSessionDialogProps {
 }
 
 export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleSessionDialogProps) {
-  const [date, setDate] = useState<Date>();
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
   const [questions, setQuestions] = useState(["", "", ""]);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -35,7 +29,7 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !groupId || !date) {
+    if (!user || !groupId || !startDateTime || !endDateTime) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -46,15 +40,17 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
 
     try {
       const sessionCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const startDate = new Date(startDateTime);
+      const endDate = new Date(endDateTime);
       
       const { error } = await supabase
         .from('peer_sessions')
         .insert([
           {
             group_id: groupId,
-            date: format(date, 'yyyy-MM-dd'),
-            start_time: startTime,
-            end_time: endTime,
+            date: startDate.toISOString().split('T')[0],
+            start_time: startDate.toTimeString().split(' ')[0],
+            end_time: endDate.toTimeString().split(' ')[0],
             questions,
             session_code: sessionCode,
             created_by: user.id,
@@ -87,52 +83,24 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                  disabled={(date) => date < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
+            <Label>Start Date & Time</Label>
+            <Input
+              type="datetime-local"
+              value={startDateTime}
+              onChange={(e) => setStartDateTime(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+              required
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endTime">End Time</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label>End Date & Time</Label>
+            <Input
+              type="datetime-local"
+              value={endDateTime}
+              onChange={(e) => setEndDateTime(e.target.value)}
+              min={startDateTime}
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label>Questions</Label>
