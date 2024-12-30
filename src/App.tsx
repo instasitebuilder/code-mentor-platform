@@ -18,38 +18,40 @@ import PeerPractice from "./pages/PeerPractice";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-              <AppSidebar />
-              <main className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/services" element={<Services />} />
-                  <Route path="/self-practice" element={<Topics />} />
-                  <Route path="/topic/:id" element={<TopicQuestions />} />
-                  <Route path="/solve/:id" element={<SolvePage />} />
-                  <Route path="/peer-practice" element={<PeerPractice />} />
-                  <Route path="/peer-practice/:sessionId" element={<SolvePage />} />
-                  <Route path="/mentor-practice" element={<SolvePage />} />
-                  <Route path="/org-practice" element={<SolvePage />} />
-                </Routes>
-              </main>
-            </div>
-          </SidebarProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <SidebarProvider>
+              <div className="flex min-h-screen w-full">
+                <AppSidebar />
+                <main className="flex-1">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/services" element={<Services />} />
+                    <Route path="/self-practice" element={<Topics />} />
+                    <Route path="/topic/:id" element={<TopicQuestions />} />
+                    <Route path="/solve/:id" element={<SolvePage />} />
+                    <Route path="/peer-practice" element={<PeerPractice />} />
+                    <Route path="/peer-practice/:sessionId" element={<SolvePage />} />
+                    <Route path="/mentor-practice" element={<SolvePage />} />
+                    <Route path="/org-practice" element={<SolvePage />} />
+                  </Routes>
+                </main>
+              </div>
+            </SidebarProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
