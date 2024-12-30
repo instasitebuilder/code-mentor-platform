@@ -9,6 +9,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { SessionList } from "../components/SessionList";
+import { useNavigate } from "react-router-dom";
 
 export default function PeerPractice() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -18,6 +19,14 @@ export default function PeerPractice() {
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery({
     queryKey: ['peer-groups', user?.id],
@@ -27,7 +36,15 @@ export default function PeerPractice() {
         .select('*')
         .eq('created_by', user?.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching groups:', error);
+        toast({
+          title: "Error fetching groups",
+          description: error.message,
+          variant: "destructive",
+        });
+        return [];
+      }
       return data;
     },
     enabled: !!user,
@@ -36,6 +53,7 @@ export default function PeerPractice() {
   const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ['peer-sessions', user?.id],
     queryFn: async () => {
+      // First fetch sessions with group data
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('peer_sessions')
         .select(`
@@ -43,38 +61,46 @@ export default function PeerPractice() {
           peer_groups (
             name,
             members
-          ),
-          peer_questions (
-            id,
-            question_text
           )
-        `);
+        `)
+        .eq('created_by', user?.id);
       
-      if (sessionsError) throw sessionsError;
-
-      const memberIds = sessionsData?.flatMap(session => session.peer_groups?.members || []) || [];
-      const uniqueMemberIds = [...new Set(memberIds)];
-      
-      if (uniqueMemberIds.length === 0) {
-        return sessionsData?.map(session => ({
-          ...session,
-          memberEmails: []
-        }));
+      if (sessionsError) {
+        console.error('Error fetching sessions:', sessionsError);
+        toast({
+          title: "Error fetching sessions",
+          description: sessionsError.message,
+          variant: "destructive",
+        });
+        return [];
       }
 
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .in('id', uniqueMemberIds);
-      
-      if (profilesError) throw profilesError;
+      // Then fetch questions for each session
+      const sessionsWithQuestions = await Promise.all(
+        sessionsData.map(async (session) => {
+          const { data: questionsData, error: questionsError } = await supabase
+            .from('peer_questions')
+            .select('*')
+            .eq('session_id', session.id);
 
-      const emailMap = new Map(profilesData?.map(profile => [profile.id, profile.email]));
-      
-      return sessionsData?.map(session => ({
-        ...session,
-        memberEmails: (session.peer_groups?.members || []).map(id => emailMap.get(id) || 'Unknown')
-      }));
+          if (questionsError) {
+            console.error('Error fetching questions:', questionsError);
+            return {
+              ...session,
+              peer_questions: [],
+              memberEmails: session.peer_groups?.members || [],
+            };
+          }
+
+          return {
+            ...session,
+            peer_questions: questionsData,
+            memberEmails: session.peer_groups?.members || [],
+          };
+        })
+      );
+
+      return sessionsWithQuestions;
     },
     enabled: !!user,
   });
@@ -99,22 +125,26 @@ export default function PeerPractice() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {groups?.map((group) => (
-            <div key={group.id} className="p-6 rounded-lg border bg-card">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">{group.name}</h3>
-                <Button
-                  onClick={() => {
-                    setSelectedGroupId(group.id);
-                    setScheduleOpen(true);
-                  }}
-                >
-                  Schedule
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Members: {group.members.length}
-              </p>
-            </div>
+            <Card key={group.id} className="p-6">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg">{group.name}</CardTitle>
+                  <Button
+                    onClick={() => {
+                      setSelectedGroupId(group.id);
+                      setScheduleOpen(true);
+                    }}
+                  >
+                    Schedule
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Members: {group.members.length}
+                </p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

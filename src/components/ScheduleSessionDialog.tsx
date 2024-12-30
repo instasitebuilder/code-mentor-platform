@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ScheduleSessionDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
   const [questions, setQuestions] = useState(["", "", ""]);
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
@@ -62,30 +64,35 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
       if (sessionError) throw sessionError;
 
       // Create questions
-      const questionInserts = questions
-        .filter(q => q.trim() !== '')
-        .map(question_text => ({
-          session_id: sessionData.id,
-          question_text,
-        }));
+      const validQuestions = questions.filter(q => q.trim() !== '');
+      if (validQuestions.length > 0) {
+        const { error: questionsError } = await supabase
+          .from('peer_questions')
+          .insert(
+            validQuestions.map(question_text => ({
+              session_id: sessionData.id,
+              question_text,
+            }))
+          );
 
-      const { error: questionsError } = await supabase
-        .from('peer_questions')
-        .insert(questionInserts);
-
-      if (questionsError) throw questionsError;
+        if (questionsError) throw questionsError;
+      }
 
       toast({
         title: "Session scheduled successfully",
         description: `Session code: ${sessionCode}`,
       });
 
+      queryClient.invalidateQueries({ queryKey: ['peer-sessions'] });
       onOpenChange(false);
-    } catch (error) {
+      setStartDateTime("");
+      setEndDateTime("");
+      setQuestions(["", "", ""]);
+    } catch (error: any) {
       console.error('Error scheduling session:', error);
       toast({
         title: "Error scheduling session",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     }
@@ -126,7 +133,7 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
                 value={question}
                 onChange={(e) => handleQuestionChange(index, e.target.value)}
                 placeholder={`Question ${index + 1}`}
-                required
+                required={index === 0}
               />
             ))}
           </div>
