@@ -43,7 +43,8 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
       const startDate = new Date(startDateTime);
       const endDate = new Date(endDateTime);
       
-      const { error } = await supabase
+      // Create session
+      const { data: sessionData, error: sessionError } = await supabase
         .from('peer_sessions')
         .insert([
           {
@@ -51,13 +52,28 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
             date: startDate.toISOString().split('T')[0],
             start_time: startDate.toTimeString().split(' ')[0],
             end_time: endDate.toTimeString().split(' ')[0],
-            questions,
             session_code: sessionCode,
             created_by: user.id,
           }
-        ]);
+        ])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (sessionError) throw sessionError;
+
+      // Create questions
+      const questionInserts = questions
+        .filter(q => q.trim() !== '')
+        .map(question_text => ({
+          session_id: sessionData.id,
+          question_text,
+        }));
+
+      const { error: questionsError } = await supabase
+        .from('peer_questions')
+        .insert(questionInserts);
+
+      if (questionsError) throw questionsError;
 
       toast({
         title: "Session scheduled successfully",

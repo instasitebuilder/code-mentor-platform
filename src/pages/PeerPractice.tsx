@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function PeerPractice() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -36,7 +37,6 @@ export default function PeerPractice() {
   const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ['peer-sessions', user?.id],
     queryFn: async () => {
-      // First, get all sessions with their group data
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('peer_sessions')
         .select(`
@@ -44,12 +44,15 @@ export default function PeerPractice() {
           peer_groups (
             name,
             members
+          ),
+          peer_questions (
+            id,
+            question_text
           )
         `);
       
       if (sessionsError) throw sessionsError;
 
-      // Get unique member IDs from all sessions
       const memberIds = sessionsData?.flatMap(session => session.peer_groups?.members || []) || [];
       const uniqueMemberIds = [...new Set(memberIds)];
       
@@ -60,7 +63,6 @@ export default function PeerPractice() {
         }));
       }
 
-      // Query profiles directly with the member UUIDs we have
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email')
@@ -68,10 +70,8 @@ export default function PeerPractice() {
       
       if (profilesError) throw profilesError;
 
-      // Create a map of user IDs to emails
-      const emailMap = new Map(profilesData?.map(profile => [profile.id, profile.email]) || []);
+      const emailMap = new Map(profilesData?.map(profile => [profile.id, profile.email]));
       
-      // Add member emails to each session
       return sessionsData?.map(session => ({
         ...session,
         memberEmails: (session.peer_groups?.members || []).map(id => emailMap.get(id) || 'Unknown')
@@ -83,6 +83,28 @@ export default function PeerPractice() {
   const handleQuestionClick = (session: any, index: number) => {
     setSelectedSession(session);
     setSelectedQuestionIndex(index);
+  };
+
+  const sendSessionEmails = async (sessionId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-session-email', {
+        body: { sessionId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Emails Sent",
+        description: "Session details have been sent to all group members.",
+      });
+    } catch (error) {
+      console.error('Error sending emails:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send session emails. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -133,6 +155,7 @@ export default function PeerPractice() {
                 <TableHead>Time</TableHead>
                 <TableHead>Questions</TableHead>
                 <TableHead>Members</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -143,10 +166,10 @@ export default function PeerPractice() {
                   <TableCell>{`${session.start_time} - ${session.end_time}`}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      {session.questions.map((_, index) => (
+                      {session.peer_questions?.map((_, index) => (
                         <Button
                           key={index}
-                          variant="outline"
+                          variant={selectedSession?.id === session.id && selectedQuestionIndex === index ? "default" : "outline"}
                           size="sm"
                           onClick={() => handleQuestionClick(session, index)}
                         >
@@ -162,18 +185,31 @@ export default function PeerPractice() {
                       ))}
                     </div>
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => sendSessionEmails(session.id)}
+                    >
+                      Send Emails
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          {selectedSession && (
-            <div className="mt-6 p-6 border rounded-lg">
-              <h3 className="text-xl font-semibold mb-4">
-                Question {selectedQuestionIndex + 1}
-              </h3>
-              <p>{selectedSession.questions[selectedQuestionIndex]}</p>
-            </div>
+          {selectedSession && selectedSession.peer_questions && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>
+                  Question {selectedQuestionIndex + 1}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{selectedSession.peer_questions[selectedQuestionIndex]?.question_text}</p>
+              </CardContent>
+            </Card>
           )}
         </div>
       )}
