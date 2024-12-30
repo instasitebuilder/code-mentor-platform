@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface ScheduleSessionDialogProps {
   open: boolean;
@@ -20,7 +19,6 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
   const [questions, setQuestions] = useState(["", "", ""]);
   const { toast } = useToast();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...questions];
@@ -45,8 +43,7 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
       const startDate = new Date(startDateTime);
       const endDate = new Date(endDateTime);
       
-      // Create session
-      const { data: sessionData, error: sessionError } = await supabase
+      const { error } = await supabase
         .from('peer_sessions')
         .insert([
           {
@@ -54,45 +51,25 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
             date: startDate.toISOString().split('T')[0],
             start_time: startDate.toTimeString().split(' ')[0],
             end_time: endDate.toTimeString().split(' ')[0],
+            questions,
             session_code: sessionCode,
             created_by: user.id,
           }
-        ])
-        .select()
-        .single();
+        ]);
 
-      if (sessionError) throw sessionError;
-
-      // Create questions
-      const validQuestions = questions.filter(q => q.trim() !== '');
-      if (validQuestions.length > 0) {
-        const { error: questionsError } = await supabase
-          .from('peer_questions')
-          .insert(
-            validQuestions.map(question_text => ({
-              session_id: sessionData.id,
-              question_text,
-            }))
-          );
-
-        if (questionsError) throw questionsError;
-      }
+      if (error) throw error;
 
       toast({
         title: "Session scheduled successfully",
         description: `Session code: ${sessionCode}`,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['peer-sessions'] });
       onOpenChange(false);
-      setStartDateTime("");
-      setEndDateTime("");
-      setQuestions(["", "", ""]);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error scheduling session:', error);
       toast({
         title: "Error scheduling session",
-        description: error.message || "Please try again later.",
+        description: "Please try again later.",
         variant: "destructive",
       });
     }
@@ -133,7 +110,7 @@ export function ScheduleSessionDialog({ open, onOpenChange, groupId }: ScheduleS
                 value={question}
                 onChange={(e) => handleQuestionChange(index, e.target.value)}
                 placeholder={`Question ${index + 1}`}
-                required={index === 0}
+                required
               />
             ))}
           </div>
