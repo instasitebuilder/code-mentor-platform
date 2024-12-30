@@ -49,32 +49,32 @@ export default function PeerPractice() {
       
       if (sessionsError) throw sessionsError;
 
-      // Get unique member IDs from all sessions
-      const memberIds = sessionsData?.flatMap(session => session.peer_groups?.members || []) || [];
-      const uniqueMemberIds = [...new Set(memberIds)];
+      // Get unique member emails from all sessions
+      const memberEmails = sessionsData?.flatMap(session => session.peer_groups?.members || []) || [];
+      const uniqueEmails = [...new Set(memberEmails)];
       
-      if (uniqueMemberIds.length === 0) {
+      if (uniqueEmails.length === 0) {
         return sessionsData?.map(session => ({
           ...session,
           memberEmails: []
         }));
       }
 
-      // Fetch profiles for all members using their UUIDs directly
+      // Fetch profiles for all members using their emails
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email')
-        .in('id', uniqueMemberIds);
+        .select('email')
+        .in('email', uniqueEmails);
       
       if (profilesError) throw profilesError;
 
-      // Create a map of user IDs to emails
-      const emailMap = new Map(profilesData?.map(profile => [profile.id, profile.email]));
+      // Create a map of emails
+      const emailMap = new Map(profilesData?.map(profile => [profile.email, profile.email]));
       
       // Add member emails to each session
       return sessionsData?.map(session => ({
         ...session,
-        memberEmails: (session.peer_groups?.members || []).map(id => emailMap.get(id) || 'Unknown')
+        memberEmails: (session.peer_groups?.members || []).map(email => emailMap.get(email) || email)
       }));
     },
     enabled: !!user,
