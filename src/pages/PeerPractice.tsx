@@ -86,7 +86,7 @@ export default function PeerPractice() {
     toast({
       title: "Group deleted",
       description: `Group ${groupId} has been deleted.`,
-      variant: "success",
+      variant: "default" // Changed from "success" to "default"
     });
   };
 
@@ -174,7 +174,7 @@ export default function PeerPractice() {
                         onClick={() => toast({
                           title: "Edit action",
                           description: "You can implement editing here.",
-                          variant: "info",
+                          variant: "default" // Changed from "info" to "default"
                         })}
                       />
                       <AiOutlineDelete
