@@ -33,6 +33,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { to, sessionDetails }: EmailRequest = await req.json();
     
+    // During testing, only send to the specified email
+    const testEmail = "instasitebuilder@gmail.com";
+    
     const emailHtml = `
       <h2>New Practice Session Scheduled</h2>
       <p>A new practice session has been scheduled for ${sessionDetails.date}</p>
@@ -46,7 +49,6 @@ const handler = async (req: Request): Promise<Response> => {
       <p>Use this code to join the session when it starts.</p>
     `;
 
-    // For testing, if no domain is verified, only send to the authenticated email
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -55,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "CodePractice <onboarding@resend.dev>",
-        to,
+        to: [testEmail], // Only send to test email during development
         subject: `New Practice Session - ${sessionDetails.groupName}`,
         html: emailHtml,
       }),
@@ -68,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(
         JSON.stringify({ 
           error: data,
-          message: "To send emails to other recipients, please verify a domain at resend.com/domains"
+          message: "Error sending email. Please verify your domain at resend.com/domains"
         }), 
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -81,11 +83,11 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
-    console.error("Error sending email:", error);
+  } catch (error: any) {
+    console.error("Error in sendemail function:", error);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 };
