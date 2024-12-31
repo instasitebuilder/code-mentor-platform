@@ -7,58 +7,38 @@ import { StepProgress } from "@/components/StepProgress";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Navbar } from "@/components/Navbar";
-
-const questions = {
-  1: {
-    title: "Two Sum",
-    description: `Given an array of integers nums and an integer target, return indices of the two numbers in nums such that they add up to target.
-    
-You may assume that each input would have exactly one solution, and you may not use the same element twice.
-
-You can return the answer in any order.`,
-    examples: [
-      {
-        input: "nums = [2,7,11,15], target = 9",
-        output: "[0,1]",
-      },
-    ],
-  },
-};
-
-const practiceQuestions = {
-  "self-practice": {
-    title: "Array Manipulation",
-    description: "Write a function that takes an array of integers and returns the sum of all positive numbers.",
-    examples: [
-      {
-        input: "[1, -4, 7, 12]",
-        output: "20",
-      },
-    ],
-  },
-  
-};
+import { questions, practiceQuestions } from "@/data/questions";
 
 const steps = [
   {
     title: "Understand the Example",
     description: "Review the example and make sure you understand the problem",
+    completed: false,
+    current: true
   },
   {
     title: "Write Approach",
     description: "Explain your solution approach in plain words",
+    completed: false,
+    current: false
   },
   {
     title: "Add Test Cases",
     description: "Write additional test cases to validate your solution",
+    completed: false,
+    current: false
   },
   {
     title: "Implement Solution",
     description: "Write your code solution",
+    completed: false,
+    current: false
   },
   {
     title: "Submit",
     description: "Submit your solution for evaluation",
+    completed: false,
+    current: false
   },
 ];
 
@@ -100,6 +80,13 @@ export default function SolvePage() {
       </div>
     );
   }
+
+  // Update steps based on current step
+  const updatedSteps = steps.map((step, index) => ({
+    ...step,
+    completed: index < currentStep,
+    current: index === currentStep
+  }));
 
   return (
     <div>
@@ -202,13 +189,7 @@ export default function SolvePage() {
                 <CardTitle>Progress</CardTitle>
               </CardHeader>
               <CardContent>
-                <StepProgress
-                  steps={steps.map((step, index) => ({
-                    ...step,
-                    completed: index < currentStep,
-                  }))}
-                  currentStep={currentStep}
-                />
+                <StepProgress steps={updatedSteps} />
               </CardContent>
             </Card>
           </div>
