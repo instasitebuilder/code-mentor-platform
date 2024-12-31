@@ -104,6 +104,89 @@ export type Database = {
         }
         Relationships: []
       }
+      question_test_cases: {
+        Row: {
+          created_at: string
+          expected_output: string
+          id: string
+          input: string
+          is_hidden: boolean | null
+          question_id: string
+        }
+        Insert: {
+          created_at?: string
+          expected_output: string
+          id?: string
+          input: string
+          is_hidden?: boolean | null
+          question_id: string
+        }
+        Update: {
+          created_at?: string
+          expected_output?: string
+          id?: string
+          input?: string
+          is_hidden?: boolean | null
+          question_id?: string
+        }
+        Relationships: []
+      }
+      submissions: {
+        Row: {
+          approach: string
+          code: string
+          created_at: string
+          evaluation_feedback: string | null
+          evaluation_score: number | null
+          id: string
+          language: string
+          question_id: string
+          session_id: string
+          space_complexity: string
+          test_cases: string
+          time_complexity: string
+          user_id: string
+        }
+        Insert: {
+          approach: string
+          code: string
+          created_at?: string
+          evaluation_feedback?: string | null
+          evaluation_score?: number | null
+          id?: string
+          language: string
+          question_id: string
+          session_id: string
+          space_complexity: string
+          test_cases: string
+          time_complexity: string
+          user_id: string
+        }
+        Update: {
+          approach?: string
+          code?: string
+          created_at?: string
+          evaluation_feedback?: string | null
+          evaluation_score?: number | null
+          id?: string
+          language?: string
+          question_id?: string
+          session_id?: string
+          space_complexity?: string
+          test_cases?: string
+          time_complexity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "peer_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
