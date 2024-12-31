@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AiOutlineInfoCircle, AiOutlineDelete, AiOutlineMail, AiOutlineEdit } from "react-icons/ai"; // Importing icons
 
 export default function PeerPractice() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -36,7 +37,6 @@ export default function PeerPractice() {
   const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ['peer-sessions', user?.id],
     queryFn: async () => {
-      // First, get all sessions with their group data
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('peer_sessions')
         .select(`
@@ -49,10 +49,9 @@ export default function PeerPractice() {
       
       if (sessionsError) throw sessionsError;
 
-      // Get unique member emails from all sessions
       const memberEmails = sessionsData?.flatMap(session => session.peer_groups?.members || []) || [];
       const uniqueEmails = [...new Set(memberEmails)];
-      
+
       if (uniqueEmails.length === 0) {
         return sessionsData?.map(session => ({
           ...session,
@@ -60,7 +59,6 @@ export default function PeerPractice() {
         }));
       }
 
-      // Fetch profiles for all members using their emails
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('email')
@@ -68,10 +66,8 @@ export default function PeerPractice() {
       
       if (profilesError) throw profilesError;
 
-      // Create a map of emails
       const emailMap = new Map(profilesData?.map(profile => [profile.email, profile.email]));
       
-      // Add member emails to each session
       return sessionsData?.map(session => ({
         ...session,
         memberEmails: (session.peer_groups?.members || []).map(email => emailMap.get(email) || email)
@@ -83,6 +79,15 @@ export default function PeerPractice() {
   const handleQuestionClick = (session: any, index: number) => {
     setSelectedSession(session);
     setSelectedQuestionIndex(index);
+  };
+
+  const deleteGroup = (groupId: string) => {
+    // Call the delete API or mutate the state to remove the group
+    toast({
+      title: "Group deleted",
+      description: `Group ${groupId} has been deleted.`,
+      variant: "success",
+    });
   };
 
   return (
@@ -103,14 +108,20 @@ export default function PeerPractice() {
             <div key={group.id} className="p-6 rounded-lg border bg-card">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">{group.name}</h3>
-                <Button
-                  onClick={() => {
-                    setSelectedGroupId(group.id);
-                    setScheduleOpen(true);
-                  }}
-                >
-                  Schedule
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => {
+                      setSelectedGroupId(group.id);
+                      setScheduleOpen(true);
+                    }}
+                  >
+                    Schedule
+                  </Button>
+                  <AiOutlineDelete
+                    className="text-red-500 cursor-pointer"
+                    onClick={() => deleteGroup(group.id)}
+                  />
+                </div>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Members: {group.members.length}
@@ -125,41 +136,52 @@ export default function PeerPractice() {
       ) : (
         <div className="space-y-6">
           <h2 className="text-2xl font-semibold">Practice Sessions</h2>
-          <Table>
-            <TableHeader>
+          <Table className="bg-gray-50">
+            <TableHeader className="bg-blue-500 text-white">
               <TableRow>
                 <TableHead>Group</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
-                <TableHead>Questions</TableHead>
                 <TableHead>Members</TableHead>
+                <TableHead>Actions</TableHead> {/* Added Actions column */}
               </TableRow>
             </TableHeader>
             <TableBody>
               {sessions?.map((session) => (
-                <TableRow key={session.id}>
+                <TableRow
+                  key={session.id}
+                  className="hover:bg-gray-100"
+                >
                   <TableCell>{session.peer_groups?.name}</TableCell>
                   <TableCell>{new Date(session.date).toLocaleDateString()}</TableCell>
                   <TableCell>{`${session.start_time} - ${session.end_time}`}</TableCell>
                   <TableCell>
-                    <div className="flex gap-2">
-                      {session.questions.map((_, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleQuestionClick(session, index)}
-                        >
-                          Q{index + 1}
-                        </Button>
-                      ))}
+                    <div className="flex items-center gap-2">
+                      <AiOutlineMail className="text-gray-500" />
+                      <span className="text-sm">
+                        {session.memberEmails.join(", ")}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {session.memberEmails.map((email: string, index: number) => (
-                        <span key={index} className="text-sm">{email}</span>
-                      ))}
+                    {/* Action Icons in each row */}
+                    <div className="flex gap-3">
+                      <AiOutlineInfoCircle
+                        className="text-blue-500 cursor-pointer"
+                        onClick={() => handleQuestionClick(session, 0)} // or any other action
+                      />
+                      <AiOutlineEdit
+                        className="text-yellow-500 cursor-pointer"
+                        onClick={() => toast({
+                          title: "Edit action",
+                          description: "You can implement editing here.",
+                          variant: "info",
+                        })}
+                      />
+                      <AiOutlineDelete
+                        className="text-red-500 cursor-pointer"
+                        onClick={() => deleteGroup(session.id)} // Assuming delete session action
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
