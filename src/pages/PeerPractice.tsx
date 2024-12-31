@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AiOutlineInfoCircle, AiOutlineDelete, AiOutlineMail, AiOutlineEdit } from "react-icons/ai"; // Importing icons
+import { AiOutlineInfoCircle, AiOutlineDelete, AiOutlineMail, AiOutlineEdit } from "react-icons/ai";
 
 export default function PeerPractice() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -143,7 +143,7 @@ export default function PeerPractice() {
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead>Members</TableHead>
-                <TableHead>Actions</TableHead> {/* Added Actions column */}
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -164,11 +164,10 @@ export default function PeerPractice() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {/* Action Icons in each row */}
                     <div className="flex gap-3">
                       <AiOutlineInfoCircle
                         className="text-blue-500 cursor-pointer"
-                        onClick={() => handleQuestionClick(session, 0)} // or any other action
+                        onClick={() => handleQuestionClick(session, 0)}
                       />
                       <AiOutlineEdit
                         className="text-yellow-500 cursor-pointer"
@@ -180,7 +179,7 @@ export default function PeerPractice() {
                       />
                       <AiOutlineDelete
                         className="text-red-500 cursor-pointer"
-                        onClick={() => deleteGroup(session.id)} // Assuming delete session action
+                        onClick={() => deleteGroup(session.id)}
                       />
                     </div>
                   </TableCell>
