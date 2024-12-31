@@ -6,9 +6,12 @@ import { StepProgress } from "@/components/StepProgress";
 import { SolutionForm } from "@/components/SolutionForm";
 import { FeedbackDisplay } from "@/components/FeedbackDisplay";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { practiceQuestions } from "@/data/questions";
+import { SessionHeader } from "@/components/SessionHeader";
+import { QuestionSelector } from "@/components/QuestionSelector";
+import { QuestionDisplay } from "@/components/QuestionDisplay";
+import { ComplexityInputs } from "@/components/ComplexityInputs";
 
 export default function Together() {
   const { sessionCode } = useParams();
@@ -20,6 +23,8 @@ export default function Together() {
   const [approach, setApproach] = useState("");
   const [testCases, setTestCases] = useState("");
   const [code, setCode] = useState("");
+  const [timeComplexity, setTimeComplexity] = useState("");
+  const [spaceComplexity, setSpaceComplexity] = useState("");
   const [feedback, setFeedback] = useState<any>(null);
 
   const steps = [
@@ -94,6 +99,8 @@ export default function Together() {
             approach,
             testCases,
             code,
+            timeComplexity,
+            spaceComplexity,
             questionId: sessionDetails?.questions[currentQuestionIndex],
             sessionId: sessionDetails?.id,
             userId: user?.id,
@@ -131,53 +138,55 @@ export default function Together() {
     );
   }
 
-  const currentQuestion = practiceQuestions["peer-practice"];
+  const currentQuestion = sessionDetails.questions[currentQuestionIndex];
 
   return (
     <div className="container py-8">
       <div className="grid gap-6 lg:grid-cols-[1fr,300px]">
         <div className="space-y-6">
+          <SessionHeader 
+            sessionCode={sessionDetails.session_code} 
+            userEmail={user?.email || ""}
+          />
+          
+          <QuestionSelector
+            questions={sessionDetails.questions}
+            selectedQuestionIndex={currentQuestionIndex}
+            onSelectQuestion={setCurrentQuestionIndex}
+          />
+
+          <QuestionDisplay
+            title={currentQuestion.title}
+            description={currentQuestion.description}
+            examples={currentQuestion.examples}
+          />
+
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Session: {sessionDetails.session_code}</span>
-                <span className="text-sm text-muted-foreground">
-                  {user?.email}
-                </span>
-              </CardTitle>
+              <CardTitle>Your Solution</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">{currentQuestion.title}</h3>
-                  <p className="text-muted-foreground">{currentQuestion.description}</p>
-                  <div className="mt-4">
-                    <h4 className="font-medium mb-2">Examples:</h4>
-                    {currentQuestion.examples.map((example, index) => (
-                      <div key={index} className="bg-muted p-4 rounded-md mb-4">
-                        <p><strong>Input:</strong> {example.input}</p>
-                        <p><strong>Output:</strong> {example.output}</p>
-                        {example.explanation && (
-                          <p><strong>Explanation:</strong> {example.explanation}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <SolutionForm
+                currentStep={currentStep}
+                onNext={handleNext}
+                approach={approach}
+                setApproach={setApproach}
+                testCases={testCases}
+                setTestCases={setTestCases}
+                code={code}
+                setCode={setCode}
+              />
 
-                <SolutionForm
-                  currentStep={currentStep}
-                  onNext={handleNext}
-                  approach={approach}
-                  setApproach={setApproach}
-                  testCases={testCases}
-                  setTestCases={setTestCases}
-                  code={code}
-                  setCode={setCode}
+              {currentStep === 4 && (
+                <ComplexityInputs
+                  timeComplexity={timeComplexity}
+                  spaceComplexity={spaceComplexity}
+                  onTimeComplexityChange={setTimeComplexity}
+                  onSpaceComplexityChange={setSpaceComplexity}
                 />
+              )}
 
-                {feedback && <FeedbackDisplay feedback={feedback} />}
-              </div>
+              {feedback && <FeedbackDisplay feedback={feedback} />}
             </CardContent>
           </Card>
         </div>
@@ -189,16 +198,6 @@ export default function Together() {
             </CardHeader>
             <CardContent>
               <StepProgress steps={steps} />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Session Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p><strong>Date:</strong> {new Date(sessionDetails.date).toLocaleDateString()}</p>
-              <p><strong>Time:</strong> {sessionDetails.start_time} - {sessionDetails.end_time}</p>
-              <p><strong>Group:</strong> {sessionDetails.peer_groups?.name}</p>
             </CardContent>
           </Card>
         </div>
