@@ -27,6 +27,10 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    if (!RESEND_API_KEY) {
+      throw new Error("Missing RESEND_API_KEY environment variable");
+    }
+
     const { to, sessionDetails }: EmailRequest = await req.json();
     
     const emailHtml = `
@@ -42,6 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
       <p>Use this code to join the session when it starts.</p>
     `;
 
+    // For testing, if no domain is verified, only send to the authenticated email
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -56,12 +61,22 @@ const handler = async (req: Request): Promise<Response> => {
       }),
     });
 
+    const data = await res.json();
+    
     if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error);
+      console.error('Resend API error:', data);
+      return new Response(
+        JSON.stringify({ 
+          error: data,
+          message: "To send emails to other recipients, please verify a domain at resend.com/domains"
+        }), 
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: res.status,
+        }
+      );
     }
 
-    const data = await res.json();
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
