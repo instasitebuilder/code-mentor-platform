@@ -30,7 +30,7 @@ export function JoinSessionDialog({ open, onOpenChange }: JoinSessionDialogProps
       if (error) throw error;
 
       if (data) {
-        navigate(`/peer-practice/${data.id}`);
+        navigate(`/together/${sessionCode}`);
         onOpenChange(false);
       }
     } catch (error) {

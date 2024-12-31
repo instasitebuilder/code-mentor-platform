@@ -6,10 +6,13 @@ import { StepProgress } from "@/components/StepProgress";
 import { SolutionForm } from "@/components/SolutionForm";
 import { FeedbackDisplay } from "@/components/FeedbackDisplay";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { practiceQuestions } from "@/data/questions";
 
 export default function Together() {
   const { sessionCode } = useParams();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [sessionDetails, setSessionDetails] = useState<any>(null);
@@ -54,15 +57,23 @@ export default function Together() {
 
   useEffect(() => {
     const fetchSessionDetails = async () => {
+      if (!sessionCode) return;
+
       try {
-        const { data: sessions, error } = await supabase
+        const { data: session, error } = await supabase
           .from("peer_sessions")
-          .select("*")
-          .eq("session_code", sessionCode)
+          .select(`
+            *,
+            peer_groups (
+              name,
+              members
+            )
+          `)
+          .eq('session_code', sessionCode)
           .single();
 
         if (error) throw error;
-        setSessionDetails(sessions);
+        setSessionDetails(session);
       } catch (error: any) {
         toast({
           title: "Error",
@@ -72,14 +83,11 @@ export default function Together() {
       }
     };
 
-    if (sessionCode) {
-      fetchSessionDetails();
-    }
+    fetchSessionDetails();
   }, [sessionCode]);
 
   const handleNext = async () => {
     if (currentStep === 4) {
-      // Final submission
       try {
         const { data, error } = await supabase.functions.invoke("evaluate-submission", {
           body: {
@@ -87,6 +95,8 @@ export default function Together() {
             testCases,
             code,
             questionId: sessionDetails?.questions[currentQuestionIndex],
+            sessionId: sessionDetails?.id,
+            userId: user?.id,
           },
         });
 
@@ -121,39 +131,53 @@ export default function Together() {
     );
   }
 
+  const currentQuestion = practiceQuestions["peer-practice"];
+
   return (
     <div className="container py-8">
       <div className="grid gap-6 lg:grid-cols-[1fr,300px]">
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Practice Session: {sessionDetails.session_code}</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Session: {sessionDetails.session_code}</span>
+                <span className="text-sm text-muted-foreground">
+                  {user?.email}
+                </span>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4 mb-4">
-                {sessionDetails.questions.map((_, index: number) => (
-                  <Button
-                    key={index}
-                    variant={currentQuestionIndex === index ? "default" : "outline"}
-                    onClick={() => setCurrentQuestionIndex(index)}
-                  >
-                    Question {index + 1}
-                  </Button>
-                ))}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">{currentQuestion.title}</h3>
+                  <p className="text-muted-foreground">{currentQuestion.description}</p>
+                  <div className="mt-4">
+                    <h4 className="font-medium mb-2">Examples:</h4>
+                    {currentQuestion.examples.map((example, index) => (
+                      <div key={index} className="bg-muted p-4 rounded-md mb-4">
+                        <p><strong>Input:</strong> {example.input}</p>
+                        <p><strong>Output:</strong> {example.output}</p>
+                        {example.explanation && (
+                          <p><strong>Explanation:</strong> {example.explanation}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <SolutionForm
+                  currentStep={currentStep}
+                  onNext={handleNext}
+                  approach={approach}
+                  setApproach={setApproach}
+                  testCases={testCases}
+                  setTestCases={setTestCases}
+                  code={code}
+                  setCode={setCode}
+                />
+
+                {feedback && <FeedbackDisplay feedback={feedback} />}
               </div>
-
-              <SolutionForm
-                currentStep={currentStep}
-                onNext={handleNext}
-                approach={approach}
-                setApproach={setApproach}
-                testCases={testCases}
-                setTestCases={setTestCases}
-                code={code}
-                setCode={setCode}
-              />
-
-              {feedback && <FeedbackDisplay feedback={feedback} />}
             </CardContent>
           </Card>
         </div>
@@ -165,6 +189,16 @@ export default function Together() {
             </CardHeader>
             <CardContent>
               <StepProgress steps={steps} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Session Info</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p><strong>Date:</strong> {new Date(sessionDetails.date).toLocaleDateString()}</p>
+              <p><strong>Time:</strong> {sessionDetails.start_time} - {sessionDetails.end_time}</p>
+              <p><strong>Group:</strong> {sessionDetails.peer_groups?.name}</p>
             </CardContent>
           </Card>
         </div>
