@@ -1,10 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { Groq } from "groq-sdk";
-
-const groq = new Groq({
-  apiKey: Deno.env.get("GROQ_API_KEY"),
-});
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,6 +24,7 @@ serve(async (req) => {
       userId 
     } = await req.json();
 
+    // Create the evaluation prompt
     const prompt = `
       Please evaluate this coding submission:
       
@@ -47,17 +43,28 @@ serve(async (req) => {
       Also provide specific feedback and suggestions for improvement.
     `;
 
-    const response = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      model: "llama3-8b-8192",
+    // Make request to Groq API
+    const response = await fetch('https://api.groq.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        model: "llama3-8b-8192",
+      }),
     });
 
-    const content = response.choices[0]?.message?.content || "";
+    const groqResponse = await response.json();
+    console.log('Groq API Response:', groqResponse);
+
+    const content = groqResponse.choices?.[0]?.message?.content || "";
     
     // Parse the response and extract scores
     const scores = {
