@@ -5,10 +5,10 @@ import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { ScheduleSessionDialog } from "@/components/ScheduleSessionDialog";
 import { JoinSessionDialog } from "@/components/JoinSessionDialog";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AiOutlineInfoCircle, AiOutlineDelete, AiOutlineMail, AiOutlineEdit } from "react-icons/ai"; // Importing icons
+import { AiOutlineInfoCircle, AiOutlineDelete, AiOutlineMail, AiOutlineEdit } from "react-icons/ai";
 
 export default function PeerPractice() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -216,3 +216,4 @@ export default function PeerPractice() {
     </div>
   );
 }
+

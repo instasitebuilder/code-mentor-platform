@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Navbar } from "@/components/Navbar";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Signup() {
   const { toast } = useToast();
