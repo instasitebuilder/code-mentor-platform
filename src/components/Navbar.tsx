@@ -28,6 +28,7 @@ export function Navbar() {
 
   const fetchProfile = async () => {
     try {
+      // First try to fetch the existing profile
       const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('name')
@@ -36,26 +37,26 @@ export function Navbar() {
 
       if (fetchError) throw fetchError;
 
-      if (!existingProfile) {
-        // Create profile if it doesn't exist
+      if (existingProfile) {
+        setProfile(existingProfile);
+      } else {
+        // Only try to create a profile if one doesn't exist
         const { data: newProfile, error: insertError } = await supabase
           .from('profiles')
-          .insert([
+          .upsert([
             { 
               id: user?.id,
               email: user?.email
             }
           ])
           .select('name')
-          .single();
+          .maybeSingle();
 
         if (insertError) throw insertError;
         setProfile(newProfile);
-      } else {
-        setProfile(existingProfile);
       }
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching/creating profile:', error);
       toast({
         title: "Error",
         description: "Failed to load profile",
