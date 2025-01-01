@@ -8,6 +8,41 @@ import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { ActivityChart } from "@/components/dashboard/ActivityChart";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Code, Users, UserCheck, Building, UserCog } from 'lucide-react';
+
+const codingFeatures = [
+  {
+    id: 'solo',
+    title: 'Solo Coding',
+    icon: Code,
+    description: 'Track your individual coding practice progress',
+  },
+  {
+    id: 'collaborative',
+    title: 'Collaborative Coding',
+    icon: Users,
+    description: 'View your peer programming sessions and achievements',
+  },
+  {
+    id: 'mentorship',
+    title: 'Mentorship Sessions',
+    icon: UserCheck,
+    description: 'Monitor your mentorship progress and feedback',
+  },
+  {
+    id: 'team',
+    title: 'Team Coding',
+    icon: Building,
+    description: 'See your organization coding activities',
+  },
+  {
+    id: 'hr',
+    title: 'HR Round',
+    icon: UserCog,
+    description: 'Track your interview preparation progress',
+  },
+];
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -15,6 +50,7 @@ export function Dashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('solo');
 
   useEffect(() => {
     if (!user) {
@@ -64,8 +100,41 @@ export function Dashboard() {
           </p>
         </div>
 
-        <StatsGrid />
-        <ActivityChart />
+        <div className="mb-8">
+          <StatsGrid />
+        </div>
+
+        <Tabs defaultValue="solo" className="w-full mb-8">
+          <TabsList className="w-full justify-start mb-4 overflow-x-auto">
+            {codingFeatures.map((feature) => (
+              <TabsTrigger 
+                key={feature.id} 
+                value={feature.id}
+                className="flex items-center gap-2"
+              >
+                <feature.icon className="w-4 h-4" />
+                {feature.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {codingFeatures.map((feature) => (
+            <TabsContent key={feature.id} value={feature.id}>
+              <div className="grid gap-6">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <feature.icon className="w-5 h-5" />
+                    {feature.title} Progress
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    {feature.description}
+                  </p>
+                  <ActivityChart />
+                </div>
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ProfileCard profile={profile} onProfileUpdate={fetchProfile} />

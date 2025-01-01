@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import CompanyLogo from '@/assets/logo.jpg';
 
 const navigationItems = [
+  { title: 'Home', icon: Home, url: '/' },
   { title: 'Dashboard', icon: Home, url: '/dashboard' },
   { title: 'Community', icon: Users, url: '/community' },
   { title: 'Pricing', icon: DollarSign, url: '/pricing' },
