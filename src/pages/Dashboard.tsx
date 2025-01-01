@@ -126,7 +126,10 @@ export function Dashboard() {
                   <Button
                     variant="outline"
                     disabled={uploading}
-                    onClick={() => document.querySelector('input[type="file"]')?.click()}
+                    onClick={() => {
+                      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                      if (fileInput) fileInput.click();
+                    }}
                   >
                     {uploading ? 'Uploading...' : 'Change Photo'}
                   </Button>
