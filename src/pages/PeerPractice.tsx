@@ -82,11 +82,10 @@ export default function PeerPractice() {
   };
 
   const deleteGroup = (groupId: string) => {
-    // Call the delete API or mutate the state to remove the group
     toast({
       title: "Group deleted",
       description: `Group ${groupId} has been deleted.`,
-      variant: "success",
+      variant: "default",
     });
   };
 
@@ -143,7 +142,7 @@ export default function PeerPractice() {
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead>Members</TableHead>
-                <TableHead>Actions</TableHead> {/* Added Actions column */}
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -164,7 +163,6 @@ export default function PeerPractice() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {/* Action Icons in each row */}
                     <div className="flex gap-3">
                       <AiOutlineInfoCircle
                         className="text-blue-500 cursor-pointer"
@@ -175,7 +173,7 @@ export default function PeerPractice() {
                         onClick={() => toast({
                           title: "Edit action",
                           description: "You can implement editing here.",
-                          variant: "info",
+                          variant: "default",
                         })}
                       />
                       <AiOutlineDelete

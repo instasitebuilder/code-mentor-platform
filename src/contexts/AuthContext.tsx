@@ -5,13 +5,18 @@ import { supabase } from '@/lib/supabase';
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({ user: null, loading: true, logout: () => {} });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+  };
 
   useEffect(() => {
     // Get initial session
@@ -32,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

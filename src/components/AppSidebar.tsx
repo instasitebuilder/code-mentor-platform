@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Info, LayoutDashboard, LogIn, HelpCircle, Users } from 'lucide-react';
+import { Home, Info, LayoutDashboard, LogIn, HelpCircle, Users, Plus, Minus } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -11,11 +11,11 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import CompanyLogo from '@/assets/logo.jpg'; // Adjust the path as necessary
+import CompanyLogo from '@/assets/logo.jpg';
 
 const navigationItems = [
   { title: 'Home', icon: Home, url: '/' },
-  { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' }, // Added Dashboard
+  { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' },
   { title: 'About', icon: Info, url: '/about' },
   { title: 'Pricing', icon: LayoutDashboard, url: '/pricing' },
 ];
@@ -24,6 +24,7 @@ export function AppSidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -108,54 +109,53 @@ export function AppSidebar() {
         </SidebarMenu>
       </div>
 
-      {/* Modal for predefined questions with answers */}
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-11/12 md:w-1/2 lg:w-1/3">
-            <h2 className="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
-            <ul className="space-y-4">
-              {predefinedQuestions.map((qa, index) => (
-                <li key={index}>
-                  <button
-                    onClick={() => setExpandedQuestion(index === expandedQuestion ? null : index)}
-                    className="flex items-center justify-between w-full text-left text-lg font-semibold p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <span>{qa.question}</span>
-                    {index === expandedQuestion ? (
-                      <Minus className="text-gray-500 dark:text-gray-300" />
-                    ) : (
-                      <Plus className="text-gray-500 dark:text-gray-300" />
-                    )}
-                  </button>
-                  {index === expandedQuestion && (
-                    <div className="mt-2 text-gray-600 dark:text-gray-300">{qa.answer}</div>
-                  )}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-4">
+  {/* Modal for predefined questions with answers */}
+  {isModalOpen && (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-11/12 md:w-1/2 lg:w-1/3">
+        <h2 className="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
+        <ul className="space-y-4">
+          {predefinedQuestions.map((qa, index) => (
+            <li key={index}>
               <button
-                onClick={() => navigate('/contact')}
-                className="text-blue-500 hover:underline"
+                onClick={() => setExpandedQuestion(index === expandedQuestion ? null : index)}
+                className="flex items-center justify-between w-full text-left text-lg font-semibold p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                Contact Us
+                <span>{qa.question}</span>
+                {index === expandedQuestion ? (
+                  <Minus className="text-gray-500 dark:text-gray-300" />
+                ) : (
+                  <Plus className="text-gray-500 dark:text-gray-300" />
+                )}
               </button>
-            </div>
-            <button
-              onClick={closeModal}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Close
-            </button>
-          </div>
+              {index === expandedQuestion && (
+                <div className="mt-2 text-gray-600 dark:text-gray-300">{qa.answer}</div>
+              )}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4">
+          <button
+            onClick={() => navigate('/contact')}
+            className="text-blue-500 hover:underline"
+          >
+            Contact Us
+          </button>
         </div>
-      )}
-    </Sidebar>
+        <button
+          onClick={closeModal}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  )}
+</Sidebar>
   );
 }
 
 const predefinedQuestions = [
   { question: 'How do I reset my password?', answer: 'You can reset your password by clicking on the "Forgot Password" link on the login page and following the instructions.' },
   { question: 'How can I contact support?', answer: 'You can contact support by visiting our "Contact Us" page or sending an email to support@companyname.com.' },
-  // Add more questions as needed...
 ];
