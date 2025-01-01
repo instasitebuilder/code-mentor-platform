@@ -15,6 +15,9 @@ import Topics from "./pages/Topics";
 import TopicQuestions from "./pages/TopicQuestions";
 import SolvePage from "./pages/SolvePage";
 import PeerPractice from "./pages/PeerPractice";
+import Dashboard from "./pages/Dashboard";
+import Community from "./pages/Community";
+import Pricing from "./pages/Pricing";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -49,6 +52,9 @@ const App = () => {
                     <Route path="/peer-practice/:sessionId" element={<SolvePage />} />
                     <Route path="/mentor-practice" element={<SolvePage />} />
                     <Route path="/org-practice" element={<SolvePage />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/community" element={<Community />} />
+                    <Route path="/pricing" element={<Pricing />} />
                   </Routes>
                 </main>
               </div>
