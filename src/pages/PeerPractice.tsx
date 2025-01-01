@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AiOutlineInfoCircle, AiOutlineDelete, AiOutlineMail, AiOutlineEdit } from "react-icons/ai";
+import { AiOutlineInfoCircle, AiOutlineDelete, AiOutlineMail, AiOutlineEdit } from "react-icons/ai"; // Importing icons
 
 export default function PeerPractice() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function PeerPractice() {
     toast({
       title: "Group deleted",
       description: `Group ${groupId} has been deleted.`,
-      variant: "default" // Changed from "success" to "default"
+      variant: "success",
     });
   };
 
@@ -143,7 +143,7 @@ export default function PeerPractice() {
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead>Members</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Actions</TableHead> {/* Added Actions column */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -164,22 +164,23 @@ export default function PeerPractice() {
                     </div>
                   </TableCell>
                   <TableCell>
+                    {/* Action Icons in each row */}
                     <div className="flex gap-3">
                       <AiOutlineInfoCircle
                         className="text-blue-500 cursor-pointer"
-                        onClick={() => handleQuestionClick(session, 0)}
+                        onClick={() => handleQuestionClick(session, 0)} // or any other action
                       />
                       <AiOutlineEdit
                         className="text-yellow-500 cursor-pointer"
                         onClick={() => toast({
                           title: "Edit action",
                           description: "You can implement editing here.",
-                          variant: "default" // Changed from "info" to "default"
+                          variant: "info",
                         })}
                       />
                       <AiOutlineDelete
                         className="text-red-500 cursor-pointer"
-                        onClick={() => deleteGroup(session.id)}
+                        onClick={() => deleteGroup(session.id)} // Assuming delete session action
                       />
                     </div>
                   </TableCell>

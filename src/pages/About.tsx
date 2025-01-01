@@ -9,7 +9,7 @@ export default function About() {
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
           <div className="text-center space-y-4">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-              About CodePractice
+              About CodeVite
             </h1>
             <p className="text-xl text-muted-foreground">
               Your Journey to Coding Excellence
@@ -23,7 +23,7 @@ export default function About() {
                   Our Mission
                 </h2>
                 <p className="text-muted-foreground">
-                  At CodePractice, we're dedicated to helping developers of all skill levels improve their coding abilities through practical, hands-on exercises and real-world problem-solving.
+                  At CodeVite, we're dedicated to helping developers of all skill levels improve their coding abilities through practical, hands-on exercises and real-world problem-solving.
                 </p>
               </div>
 

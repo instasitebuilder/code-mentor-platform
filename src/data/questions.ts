@@ -28,15 +28,4 @@ export const practiceQuestions = {
       },
     ],
   },
-  "peer-practice": {
-    title: "String Reversal",
-    description: "Write a function that reverses a string without using built-in reverse methods.",
-    examples: [
-      {
-        input: '"hello"',
-        output: '"olleh"',
-        explanation: "Characters are reversed",
-      },
-    ],
-  },
 };
