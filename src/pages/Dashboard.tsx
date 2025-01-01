@@ -95,7 +95,8 @@ export function Dashboard() {
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `${user?.id}/${Math.random()}.${fileExt}`;
+      const userId = user?.id;
+      const filePath = `${userId}/${Math.random()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('profile_images')
@@ -120,11 +121,11 @@ export function Dashboard() {
       });
       
       await fetchProfile();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
       toast({
         title: "Error",
-        description: "Failed to upload image",
+        description: error.message || "Failed to upload image",
         variant: "destructive",
       });
     } finally {
