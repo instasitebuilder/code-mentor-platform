@@ -11,12 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 
 export function Navbar() {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { user, logout } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -26,16 +28,39 @@ export function Navbar() {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('name')
         .eq('id', user?.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
+      if (fetchError) throw fetchError;
+
+      if (!existingProfile) {
+        // Create profile if it doesn't exist
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert([
+            { 
+              id: user?.id,
+              email: user?.email
+            }
+          ])
+          .select('name')
+          .single();
+
+        if (insertError) throw insertError;
+        setProfile(newProfile);
+      } else {
+        setProfile(existingProfile);
+      }
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile",
+        variant: "destructive",
+      });
     }
   };
 
