@@ -28,11 +28,13 @@ export function Navbar() {
 
   const fetchProfile = async () => {
     try {
+      if (!user) return;
+
       // First try to fetch the existing profile
       const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('name')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
@@ -45,8 +47,8 @@ export function Navbar() {
           .from('profiles')
           .upsert([
             { 
-              id: user?.id,
-              email: user?.email
+              id: user.id,
+              email: user.email
             }
           ])
           .select('name')
