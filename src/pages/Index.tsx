@@ -34,6 +34,14 @@ const practiceModes = [
       "Download team member data and session reports"
     ],
   },
+  {
+    title: "DEvOPS  AI",
+    description: "WDEVVOPS AI",
+    icon: Users,
+    route: "/DEVOPS",
+    image: "https://www.codio.com/hubfs/Blog_EN_PICS/August%202021%20Blog%20-%20Collaborative%20Coding%20in%20Codio.png#keepProtocol",
+    instructions: [],
+  },
 ];
 
 export default function Index() {
