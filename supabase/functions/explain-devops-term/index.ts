@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -16,6 +17,12 @@ serve(async (req) => {
     const { term } = await req.json();
     const groqApiKey = Deno.env.get('GROQ_API_KEY');
     const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+
+    if (!groqApiKey || !googleApiKey) {
+      throw new Error('Missing required API keys');
+    }
+
+    console.log('Processing request for term:', term);
 
     // Get explanation from Groq
     const groqResponse = await fetch('https://api.groq.com/v1/chat/completions', {
@@ -39,7 +46,17 @@ serve(async (req) => {
       }),
     });
 
+    if (!groqResponse.ok) {
+      throw new Error(`Groq API error: ${groqResponse.status}`);
+    }
+
     const groqData = await groqResponse.json();
+    console.log('Groq response:', groqData);
+
+    if (!groqData.choices?.[0]?.message?.content) {
+      throw new Error('Invalid response format from Groq API');
+    }
+
     const groqExplanation = groqData.choices[0].message.content;
 
     // Get additional insights from Gemini
@@ -55,12 +72,34 @@ serve(async (req) => {
       "relatedQuestions": ["string"]
     }`;
 
+    console.log('Sending request to Gemini');
     const geminiResult = await model.generateContent(geminiPrompt);
     const geminiResponse = await geminiResult.response;
     const geminiText = geminiResponse.text();
     
-    // Parse Gemini's response
-    const geminiData = JSON.parse(geminiText);
+    console.log('Gemini response:', geminiText);
+
+    let geminiData;
+    try {
+      geminiData = JSON.parse(geminiText);
+    } catch (error) {
+      console.error('Failed to parse Gemini response:', error);
+      // Provide fallback data if parsing fails
+      geminiData = {
+        videos: [
+          { 
+            title: "Introduction to " + term, 
+            url: `https://www.youtube.com/results?search_query=${encodeURIComponent(term)}+tutorial`
+          }
+        ],
+        relatedQuestions: ["What is " + term + "?"]
+      };
+    }
+
+    // Validate geminiData structure
+    if (!geminiData.videos || !geminiData.relatedQuestions) {
+      throw new Error('Invalid response structure from Gemini API');
+    }
 
     // Combine responses
     const result = {
@@ -73,8 +112,11 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error in explain-devops-term function:', error);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      details: 'An error occurred while processing your request'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
