@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.1.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,37 +14,60 @@ serve(async (req) => {
 
   try {
     const { term } = await req.json();
+    const groqApiKey = Deno.env.get('GROQ_API_KEY');
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
 
-    // Use GPT-4 to generate explanation and related content
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Get explanation from Groq
+    const groqResponse = await fetch('https://api.groq.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${groqApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "llama3-8b-8192",
         messages: [
           {
             role: "system",
-            content: "You are a DevOps expert. Provide detailed explanations of DevOps terms and concepts, along with related questions and suggested video topics."
+            content: "You are a DevOps expert. Provide detailed explanations of DevOps terms and concepts."
           },
           {
             role: "user",
-            content: `Explain the DevOps term or concept: "${term}". 
-            Format your response as JSON with the following structure:
-            {
-              "explanation": "detailed explanation in simple terms",
-              "videos": [{"title": "Suggested video title", "url": "suggested search URL"}],
-              "relatedQuestions": ["question 1", "question 2", "question 3"]
-            }`
+            content: `Explain the DevOps term or concept: "${term}" in simple terms.`
           }
         ]
       }),
     });
 
-    const data = await response.json();
-    const result = JSON.parse(data.choices[0].message.content);
+    const groqData = await groqResponse.json();
+    const groqExplanation = groqData.choices[0].message.content;
+
+    // Get additional insights from Gemini
+    const genAI = new GoogleGenerativeAI(googleApiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const geminiPrompt = `For the DevOps term "${term}", provide:
+    1. Three relevant YouTube video titles and search URLs
+    2. Three related questions that someone learning this concept might ask
+    Format as JSON with structure:
+    {
+      "videos": [{"title": "string", "url": "string"}],
+      "relatedQuestions": ["string"]
+    }`;
+
+    const geminiResult = await model.generateContent(geminiPrompt);
+    const geminiResponse = await geminiResult.response;
+    const geminiText = geminiResponse.text();
+    
+    // Parse Gemini's response
+    const geminiData = JSON.parse(geminiText);
+
+    // Combine responses
+    const result = {
+      explanation: groqExplanation,
+      videos: geminiData.videos,
+      relatedQuestions: geminiData.relatedQuestions
+    };
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
