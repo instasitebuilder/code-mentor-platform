@@ -18,6 +18,7 @@ import PeerPractice from "./pages/PeerPractice";
 import Dashboard from "./pages/Dashboard";
 import Community from "./pages/Community";
 import Pricing from "./pages/Pricing";
+import TeamCoding from "./pages/TeamCoding";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -50,8 +51,7 @@ const App = () => {
                     <Route path="/solve/:id" element={<SolvePage />} />
                     <Route path="/peer-practice" element={<PeerPractice />} />
                     <Route path="/peer-practice/:sessionId" element={<SolvePage />} />
-                    <Route path="/mentor-practice" element={<SolvePage />} />
-                    <Route path="/org-practice" element={<SolvePage />} />
+                    <Route path="/team-coding" element={<TeamCoding />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/community" element={<Community />} />
                     <Route path="/pricing" element={<Pricing />} />
