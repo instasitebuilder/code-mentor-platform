@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      organization_registrations: {
+        Row: {
+          created_at: string
+          created_by: string
+          csv_file_url: string
+          id: string
+          org_address: string
+          org_email: string
+          org_name: string
+          unique_code: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          csv_file_url: string
+          id?: string
+          org_address: string
+          org_email: string
+          org_name: string
+          unique_code: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          csv_file_url?: string
+          id?: string
+          org_address?: string
+          org_email?: string
+          org_name?: string
+          unique_code?: string
+        }
+        Relationships: []
+      }
       peer_groups: {
         Row: {
           created_at: string
