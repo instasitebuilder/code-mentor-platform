@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,23 @@ export default function TeamCoding() {
   });
 
   // Fetch organizations on component mount
-  useState(() => {
+  useEffect(() => {
     fetchOrganizations();
-  });
+  }, []);
 
   const fetchOrganizations = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please login to continue",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("organization_registrations")
       .select("*")
@@ -58,6 +70,19 @@ export default function TeamCoding() {
     setLoading(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "Please login to continue",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
       if (!formData.csvFile) {
         toast({
           title: "Error",
@@ -84,7 +109,7 @@ export default function TeamCoding() {
       // Generate unique 6-digit code
       const uniqueCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Save organization details
+      // Save organization details with created_by field
       const { error: insertError } = await supabase
         .from("organization_registrations")
         .insert({
@@ -93,6 +118,7 @@ export default function TeamCoding() {
           org_address: formData.orgAddress,
           csv_file_url: publicUrl,
           unique_code: uniqueCode,
+          created_by: user.id, // Add the created_by field with user's ID
         });
 
       if (insertError) throw insertError;
