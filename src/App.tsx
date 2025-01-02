@@ -19,6 +19,7 @@ import Dashboard from "./pages/Dashboard";
 import Community from "./pages/Community";
 import Pricing from "./pages/Pricing";
 import TeamCoding from "./pages/TeamCoding";
+import DevOpsPractice from "./pages/DevOpsPractice";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -55,6 +56,7 @@ const App = () => {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/community" element={<Community />} />
                     <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/devops-practice" element={<DevOpsPractice />} />
                   </Routes>
                 </main>
               </div>
