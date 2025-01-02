@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -22,15 +22,15 @@ export function JoinSessionDialog({ open, onOpenChange }: JoinSessionDialogProps
 
     try {
       const { data, error } = await supabase
-        .from('peer_sessions')
+        .from('organization_registrations')
         .select('*')
-        .eq('session_code', sessionCode)
+        .eq('unique_code', sessionCode)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        navigate(`/together/${sessionCode}`);
+        navigate(`/practice/${sessionCode}`);
         onOpenChange(false);
       }
     } catch (error) {
