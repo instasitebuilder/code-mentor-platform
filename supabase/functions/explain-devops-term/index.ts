@@ -25,14 +25,14 @@ serve(async (req) => {
     console.log('Processing request for term:', term);
 
     // Get explanation from Groq
-    const groqResponse = await fetch('https://api.groq.com/v1/chat/completions', {
+    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${groqApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
+        model: "mixtral-8x7b-32768",
         messages: [
           {
             role: "system",
@@ -42,11 +42,14 @@ serve(async (req) => {
             role: "user",
             content: `Explain the DevOps term or concept: "${term}" in simple terms.`
           }
-        ]
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
       }),
     });
 
     if (!groqResponse.ok) {
+      console.error('Groq API error details:', await groqResponse.text());
       throw new Error(`Groq API error: ${groqResponse.status}`);
     }
 
