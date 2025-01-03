@@ -20,6 +20,8 @@ import Community from "./pages/Community";
 import Pricing from "./pages/Pricing";
 import TeamCoding from "./pages/TeamCoding";
 import DevOpsPractice from "./pages/DevOpsPractice";
+import HRInterview from "./pages/HRInterview";
+import HRInterviewSession from "./pages/HRInterviewSession";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -57,6 +59,8 @@ const App = () => {
                     <Route path="/community" element={<Community />} />
                     <Route path="/pricing" element={<Pricing />} />
                     <Route path="/devops-practice" element={<DevOpsPractice />} />
+                    <Route path="/hr-interview" element={<HRInterview />} />
+                    <Route path="/hr-interview/:id" element={<HRInterviewSession />} />
                   </Routes>
                 </main>
               </div>

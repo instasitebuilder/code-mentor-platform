@@ -291,6 +291,61 @@ export type Database = {
           },
         ]
       }
+      hr_interviews: {
+        Row: {
+          id: string;
+          user_id: string;
+          company_name: string;
+          position: string;
+          created_at: string;
+          feedback_pdf_url?: string;
+          status: 'in_progress' | 'completed';
+        }
+        Insert: {
+          user_id: string;
+          company_name: string;
+          position: string;
+          created_at?: string;
+          feedback_pdf_url?: string;
+          status: 'in_progress' | 'completed';
+        }
+        Update: {
+          id?: string;
+          user_id?: string;
+          company_name?: string;
+          position?: string;
+          created_at?: string;
+          feedback_pdf_url?: string;
+          status?: 'in_progress' | 'completed';
+        }
+        Relationships: []
+      }
+      hr_interview_questions: {
+        Row: {
+          id: string;
+          interview_id: string;
+          question: string;
+          audio_response_url?: string;
+          feedback?: string;
+          created_at: string;
+        }
+        Insert: {
+          interview_id: string;
+          question: string;
+          audio_response_url?: string;
+          feedback?: string;
+          created_at?: string;
+        }
+        Update: {
+          id?: string;
+          interview_id?: string;
+          question?: string;
+          audio_response_url?: string;
+          feedback?: string;
+          created_at?: string;
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
