@@ -38,7 +38,10 @@ export function Navbar() {
         .eq("id", user.id)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Error fetching profile:", fetchError);
+        throw fetchError;
+      }
 
       if (existingProfile) {
         setProfile(existingProfile);
@@ -54,14 +57,17 @@ export function Navbar() {
           .select("name")
           .maybeSingle();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          throw insertError;
+        }
         setProfile(newProfile);
       }
     } catch (error: any) {
-      console.error("Error fetching/creating profile:", error);
+      console.error("Error in profile management:", error);
       toast({
         title: "Error",
-        description: "Failed to load profile",
+        description: "Failed to load profile. Please try refreshing the page.",
         variant: "destructive",
       });
     }
