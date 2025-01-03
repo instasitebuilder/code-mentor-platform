@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      evaluations: {
+        Row: {
+          code_style_score: number
+          correctness_score: number
+          created_at: string
+          efficiency_score: number
+          feedback_comments: string
+          id: string
+          overall_score: number
+          submission_id: string
+        }
+        Insert: {
+          code_style_score: number
+          correctness_score: number
+          created_at?: string
+          efficiency_score: number
+          feedback_comments: string
+          id?: string
+          overall_score: number
+          submission_id: string
+        }
+        Update: {
+          code_style_score?: number
+          correctness_score?: number
+          created_at?: string
+          efficiency_score?: number
+          feedback_comments?: string
+          id?: string
+          overall_score?: number
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_registrations: {
         Row: {
           created_at: string
@@ -164,6 +205,33 @@ export type Database = {
           input?: string
           is_hidden?: boolean | null
           question_id?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          created_at: string
+          description: string
+          difficulty: string
+          examples: Json
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          difficulty: string
+          examples?: Json
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          difficulty?: string
+          examples?: Json
+          id?: string
+          title?: string
         }
         Relationships: []
       }
