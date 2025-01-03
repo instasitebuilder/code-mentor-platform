@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -46,13 +46,14 @@ export default function HRInterview() {
     try {
       setIsStarting(true);
       
-      // Create interview record in Supabase
+      // Create interview record in Supabase with status field
       const { data: interview, error } = await supabase
         .from('hr_interviews')
         .insert({
           company_name: companyName,
           position: position,
-          user_id: user?.id
+          user_id: user?.id,
+          status: 'in_progress' // Add the required status field
         })
         .select()
         .single();

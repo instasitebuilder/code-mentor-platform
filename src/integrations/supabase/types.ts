@@ -50,6 +50,71 @@ export type Database = {
           },
         ]
       }
+      hr_interview_questions: {
+        Row: {
+          audio_response_url: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          interview_id: string
+          question: string
+        }
+        Insert: {
+          audio_response_url?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          interview_id: string
+          question: string
+        }
+        Update: {
+          audio_response_url?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          interview_id?: string
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_interview_questions_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: false
+            referencedRelation: "hr_interviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_interviews: {
+        Row: {
+          company_name: string
+          created_at: string
+          feedback_pdf_url: string | null
+          id: string
+          position: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          feedback_pdf_url?: string | null
+          id?: string
+          position: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          feedback_pdf_url?: string | null
+          id?: string
+          position?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       organization_registrations: {
         Row: {
           created_at: string
@@ -290,61 +355,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      hr_interviews: {
-        Row: {
-          id: string;
-          user_id: string;
-          company_name: string;
-          position: string;
-          created_at: string;
-          feedback_pdf_url?: string;
-          status: 'in_progress' | 'completed';
-        }
-        Insert: {
-          user_id: string;
-          company_name: string;
-          position: string;
-          created_at?: string;
-          feedback_pdf_url?: string;
-          status: 'in_progress' | 'completed';
-        }
-        Update: {
-          id?: string;
-          user_id?: string;
-          company_name?: string;
-          position?: string;
-          created_at?: string;
-          feedback_pdf_url?: string;
-          status?: 'in_progress' | 'completed';
-        }
-        Relationships: []
-      }
-      hr_interview_questions: {
-        Row: {
-          id: string;
-          interview_id: string;
-          question: string;
-          audio_response_url?: string;
-          feedback?: string;
-          created_at: string;
-        }
-        Insert: {
-          interview_id: string;
-          question: string;
-          audio_response_url?: string;
-          feedback?: string;
-          created_at?: string;
-        }
-        Update: {
-          id?: string;
-          interview_id?: string;
-          question?: string;
-          audio_response_url?: string;
-          feedback?: string;
-          created_at?: string;
-        }
-        Relationships: []
       }
     }
     Views: {
