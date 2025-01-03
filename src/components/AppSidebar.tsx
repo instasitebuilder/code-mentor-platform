@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, DollarSign, Info, LogIn, HelpCircle, Plus, Minus } from 'lucide-react';
+import { Home, Users, DollarSign, Info, LogIn, HelpCircle, Plus, Minus, Grid, Bell, Settings } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -14,12 +14,39 @@ import { useAuth } from '@/contexts/AuthContext';
 import CompanyLogo from '@/assets/logo.jpg';
 
 const navigationItems = [
-  { title: 'Home', icon: Home, url: '/' },
-  { title: 'Dashboard', icon: Home, url: '/dashboard' },
-  { title: 'Community', icon: Users, url: '/community' },
-  { title: 'Pricing', icon: DollarSign, url: '/pricing' },
-  { title: 'About', icon: Info, url: '/about' },
+  { 
+    title: 'Home', 
+    icon: Home, 
+    url: '/' 
+  },
+  { 
+    title: 'Dashboard', 
+    icon: Grid, 
+    url: '/dashboard' 
+  },
+  
+  { 
+    title: 'Community', 
+    icon: Users, 
+    url: '/community' 
+  },
+  { 
+    title: 'Pricing', 
+    icon: DollarSign, 
+    url: '/pricing' 
+  },
+  { 
+    title: 'About', 
+    icon: Info, 
+    url: '/about' 
+  },
+  { 
+    title: 'Account Settings', 
+    icon: Settings, 
+    url: '/settings' 
+  },
 ];
+
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
