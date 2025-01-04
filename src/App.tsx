@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AdminRoute } from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -24,7 +25,6 @@ import HRInterview from "./pages/HRInterview";
 import HRInterviewSession from "./pages/HRInterviewSession";
 import Admin from "./pages/Admin";
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -62,7 +62,14 @@ const App = () => {
                     <Route path="/devops-practice" element={<DevOpsPractice />} />
                     <Route path="/hr-interview" element={<HRInterview />} />
                     <Route path="/hr-interview/:id" element={<HRInterviewSession />} />
-                    <Route path="/admin" element={<Admin />} />
+                    <Route 
+                      path="/admin" 
+                      element={
+                        <AdminRoute>
+                          <Admin />
+                        </AdminRoute>
+                      } 
+                    />
                   </Routes>
                 </main>
               </div>

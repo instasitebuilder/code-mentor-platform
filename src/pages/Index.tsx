@@ -35,7 +35,7 @@ const practiceModes = [
     title: "HR Round Simulation",
     description: "Prepare for HR interviews by practicing common questions and scenarios.",
     icon: UserCog,
-    route: "/hr-round-simulation",
+    route: "/hr-interview",
     image: "https://media.gettyimages.com/id/1365436662/photo/successful-partnership.jpg?s=612x612&w=0&k=20&c=B1xspe9Q5WMsLc7Hc9clR8MWUL4bsK1MfUdDNVNR2Xg=",
   },
   {
@@ -43,7 +43,7 @@ const practiceModes = [
     description: "Sharpen your technical skills with simulated problem-solving sessions.",
     icon: Code,
     route: "/technical-round-simulation",
-    image:""
+    image: ""
   },
 ];
 
