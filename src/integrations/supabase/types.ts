@@ -307,6 +307,7 @@ export type Database = {
           created_at: string
           evaluation_feedback: string | null
           evaluation_score: number | null
+          grammar_feedback: string | null
           id: string
           language: string
           question_id: string
@@ -314,6 +315,7 @@ export type Database = {
           space_complexity: string
           test_cases: string
           time_complexity: string
+          time_spent_seconds: number | null
           user_id: string
         }
         Insert: {
@@ -322,6 +324,7 @@ export type Database = {
           created_at?: string
           evaluation_feedback?: string | null
           evaluation_score?: number | null
+          grammar_feedback?: string | null
           id?: string
           language: string
           question_id: string
@@ -329,6 +332,7 @@ export type Database = {
           space_complexity: string
           test_cases: string
           time_complexity: string
+          time_spent_seconds?: number | null
           user_id: string
         }
         Update: {
@@ -337,6 +341,7 @@ export type Database = {
           created_at?: string
           evaluation_feedback?: string | null
           evaluation_score?: number | null
+          grammar_feedback?: string | null
           id?: string
           language?: string
           question_id?: string
@@ -344,6 +349,7 @@ export type Database = {
           space_complexity?: string
           test_cases?: string
           time_complexity?: string
+          time_spent_seconds?: number | null
           user_id?: string
         }
         Relationships: [
@@ -358,7 +364,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      daily_user_scores: {
+        Row: {
+          average_score: number | null
+          submission_date: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

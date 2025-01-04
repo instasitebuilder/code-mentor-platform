@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -21,7 +20,9 @@ serve(async (req) => {
       spaceComplexity,
       questionId,
       sessionId,
-      userId 
+      userId,
+      timeSpentSeconds,
+      checkGrammar 
     } = await req.json();
 
     // Create the evaluation prompt
@@ -41,6 +42,8 @@ serve(async (req) => {
       4. Overall Score
       
       Also provide specific feedback and suggestions for improvement.
+      
+      ${checkGrammar ? 'Additionally, please check for any grammar mistakes in the approach description and provide feedback.' : ''}
     `;
 
     // Make request to Groq API
@@ -62,8 +65,6 @@ serve(async (req) => {
     });
 
     const groqResponse = await response.json();
-    console.log('Groq API Response:', groqResponse);
-
     const content = groqResponse.choices?.[0]?.message?.content || "";
     
     // Parse the response and extract scores
@@ -86,11 +87,13 @@ serve(async (req) => {
           approach,
           test_cases: testCases,
           code,
-          language: 'javascript', // You might want to make this dynamic
+          language: 'javascript',
           time_complexity: timeComplexity,
           space_complexity: spaceComplexity,
           evaluation_score: scores.overallScore,
           evaluation_feedback: scores.comments,
+          time_spent_seconds: timeSpentSeconds,
+          grammar_feedback: checkGrammar ? extractGrammarFeedback(content) : null,
         }
       ]);
 
@@ -107,3 +110,9 @@ serve(async (req) => {
     });
   }
 });
+
+function extractGrammarFeedback(content: string): string {
+  // This is a simple implementation. You might want to make it more sophisticated
+  const grammarSection = content.split('Grammar feedback:')[1];
+  return grammarSection ? grammarSection.trim() : '';
+}

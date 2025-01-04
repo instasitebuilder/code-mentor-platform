@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { CodeEditor } from "../components/CodeEditor";
 import { useToast } from "../hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { QuestionTimer } from "./QuestionTimer";
 
 interface SolutionFormProps {
   currentStep: number;
@@ -30,8 +31,42 @@ export function SolutionForm({
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [submissionCount, setSubmissionCount] = useState(0);
+
+  useEffect(() => {
+    checkSubmissionCount();
+  }, []);
+
+  const checkSubmissionCount = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const { data: submissions, error } = await supabase
+      .from('submissions')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .gte('created_at', today);
+
+    if (error) {
+      console.error('Error checking submission count:', error);
+      return;
+    }
+
+    setSubmissionCount(submissions?.length || 0);
+  };
 
   const handleSubmit = async () => {
+    if (submissionCount >= 10) {
+      toast({
+        title: "Daily Limit Reached",
+        description: "You've reached the maximum limit of 10 submissions per day.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -50,7 +85,8 @@ export function SolutionForm({
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('evaluate-submission', {
+      // Check grammar using Groq
+      const { data: grammarCheck, error: grammarError } = await supabase.functions.invoke('evaluate-submission', {
         body: {
           approach,
           testCases,
@@ -59,27 +95,27 @@ export function SolutionForm({
           spaceComplexity: "O(1)",
           questionId: "1", // This should come from props
           sessionId: "1", // This should come from props
-          userId: session.user.id
+          userId: session.user.id,
+          timeSpentSeconds: timeSpent,
+          checkGrammar: true
         },
       });
 
-      if (error) {
-        console.error("Function invocation error:", error);
-        throw new Error(error.message || "Failed to evaluate submission");
-      }
-
-      if (!data) {
-        throw new Error("No response from evaluation service");
+      if (grammarError) {
+        console.error("Grammar check error:", grammarError);
+        throw new Error(grammarError.message || "Failed to check grammar");
       }
 
       toast({
         title: "Success!",
         description: "Your solution has been submitted for evaluation.",
       });
+
+      // Update submission count
+      setSubmissionCount(prev => prev + 1);
     } catch (error) {
       console.error("Submission error:", error);
       
-      // Handle specific error cases
       if (error instanceof Error && error.message.includes("refresh_token")) {
         toast({
           title: "Session Expired",
@@ -104,6 +140,14 @@ export function SolutionForm({
 
   return (
     <div className="space-y-4">
+      <QuestionTimer onTimeUpdate={setTimeSpent} />
+      
+      {submissionCount >= 10 && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+          You've reached the daily limit of 10 submissions. Please try again tomorrow.
+        </div>
+      )}
+
       {currentStep === 0 && (
         <div className="space-y-4">
           <p>Review the example above and make sure you understand the problem.</p>
@@ -156,7 +200,7 @@ export function SolutionForm({
           </div>
           <Button 
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || submissionCount >= 10}
           >
             {isSubmitting ? "Submitting..." : "Submit Solution"}
           </Button>
