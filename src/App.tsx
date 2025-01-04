@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AdminRoute } from "@/components/AdminRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -50,18 +51,95 @@ const App = () => {
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/services" element={<Services />} />
-                    <Route path="/self-practice" element={<Topics />} />
-                    <Route path="/topic/:id" element={<TopicQuestions />} />
-                    <Route path="/solve/:id" element={<SolvePage />} />
-                    <Route path="/peer-practice" element={<PeerPractice />} />
-                    <Route path="/peer-practice/:sessionId" element={<SolvePage />} />
-                    <Route path="/team-coding" element={<TeamCoding />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/community" element={<Community />} />
+                    <Route 
+                      path="/self-practice" 
+                      element={
+                        <ProtectedRoute>
+                          <Topics />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/topic/:id" 
+                      element={
+                        <ProtectedRoute>
+                          <TopicQuestions />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/solve/:id" 
+                      element={
+                        <ProtectedRoute>
+                          <SolvePage />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/peer-practice" 
+                      element={
+                        <ProtectedRoute>
+                          <PeerPractice />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/peer-practice/:sessionId" 
+                      element={
+                        <ProtectedRoute>
+                          <SolvePage />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/team-coding" 
+                      element={
+                        <ProtectedRoute>
+                          <TeamCoding />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/dashboard" 
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/community" 
+                      element={
+                        <ProtectedRoute>
+                          <Community />
+                        </ProtectedRoute>
+                      } 
+                    />
                     <Route path="/pricing" element={<Pricing />} />
-                    <Route path="/devops-practice" element={<DevOpsPractice />} />
-                    <Route path="/hr-interview" element={<HRInterview />} />
-                    <Route path="/hr-interview/:id" element={<HRInterviewSession />} />
+                    <Route 
+                      path="/devops-practice" 
+                      element={
+                        <ProtectedRoute>
+                          <DevOpsPractice />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/hr-interview" 
+                      element={
+                        <ProtectedRoute>
+                          <HRInterview />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/hr-interview/:id" 
+                      element={
+                        <ProtectedRoute>
+                          <HRInterviewSession />
+                        </ProtectedRoute>
+                      } 
+                    />
                     <Route 
                       path="/admin" 
                       element={
