@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Book, Code, Target } from 'lucide-react';
+import { Code } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -14,17 +14,22 @@ export function RecentActivity() {
       if (!user) return;
 
       try {
-        // Fetch recent submissions
-        const { data: submissions } = await supabase
+        // Fetch recent submissions with question titles
+        const { data: submissions, error } = await supabase
           .from('submissions')
           .select(`
             id,
             created_at,
-            questions (title)
+            question_id,
+            questions!inner (
+              title
+            )
           `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(3);
+
+        if (error) throw error;
 
         const formattedActivities = submissions?.map(sub => ({
           type: 'submission',
