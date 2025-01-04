@@ -381,6 +381,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "submissions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "submissions_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false

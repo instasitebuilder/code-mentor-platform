@@ -4,9 +4,26 @@ import { Code } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+type Activity = {
+  type: 'submission';
+  icon: typeof Code;
+  title: string;
+  time: string;
+  iconBg: string;
+  iconColor: string;
+};
+
+type SubmissionWithQuestion = {
+  id: string;
+  created_at: string;
+  questions: {
+    title: string;
+  };
+};
+
 export function RecentActivity() {
   const { user } = useAuth();
-  const [activities, setActivities] = useState([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,7 +31,6 @@ export function RecentActivity() {
       if (!user) return;
 
       try {
-        // Fetch recent submissions with question titles
         const { data: submissions, error } = await supabase
           .from('submissions')
           .select(`
@@ -31,14 +47,14 @@ export function RecentActivity() {
 
         if (error) throw error;
 
-        const formattedActivities = submissions?.map(sub => ({
+        const formattedActivities = (submissions as SubmissionWithQuestion[] || []).map(sub => ({
           type: 'submission',
           icon: Code,
           title: `Completed ${sub.questions?.title || 'Coding Challenge'}`,
           time: new Date(sub.created_at).toLocaleString(),
           iconBg: 'bg-blue-100 dark:bg-blue-900',
           iconColor: 'text-blue-600 dark:text-blue-300'
-        })) || [];
+        }));
 
         setActivities(formattedActivities);
       } catch (error) {
