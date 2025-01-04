@@ -47,8 +47,8 @@ export function RecentActivity() {
 
         if (error) throw error;
 
-        const formattedActivities = (submissions as SubmissionWithQuestion[] || []).map(sub => ({
-          type: 'submission',
+        const formattedActivities: Activity[] = (submissions as SubmissionWithQuestion[] || []).map(sub => ({
+          type: 'submission' as const,
           icon: Code,
           title: `Completed ${sub.questions?.title || 'Coding Challenge'}`,
           time: new Date(sub.created_at).toLocaleString(),
