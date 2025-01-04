@@ -115,6 +115,33 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_admin_notification: boolean | null
+          message: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_admin_notification?: boolean | null
+          message: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_admin_notification?: boolean | null
+          message?: string
+          title?: string
+        }
+        Relationships: []
+      }
       organization_registrations: {
         Row: {
           created_at: string
@@ -358,6 +385,41 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "peer_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          notification_id: string | null
+          read_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          notification_id?: string | null
+          read_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          notification_id?: string | null
+          read_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
             referencedColumns: ["id"]
           },
         ]
