@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,10 @@ interface Question {
   id: string;
   question: string;
   is_company_specific: boolean;
+  audio_response_url: string | null;
+  feedback: string | null;
+  interview_id: string;
+  created_at: string;
 }
 
 export default function HRInterviewSession() {
@@ -45,6 +49,7 @@ export default function HRInterviewSession() {
         const { data: questionsData, error: questionsError } = await supabase
           .from('hr_interview_questions')
           .select('*')
+          .eq('interview_id', id)
           .order('created_at');
 
         if (questionsError) throw questionsError;
