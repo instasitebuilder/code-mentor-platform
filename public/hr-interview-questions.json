@@ -1,0 +1,30 @@
+{
+  "introduction": "Hello! I'm Sarah, your AI interviewer today. I'll be asking you a series of questions to learn more about you.",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Tell me about yourself and your background.",
+      "category": "Introduction"
+    },
+    {
+      "id": 2,
+      "question": "Why are you interested in joining {company_name}?",
+      "category": "Company Interest"
+    },
+    {
+      "id": 3,
+      "question": "What makes you a good fit for the {position} role?",
+      "category": "Role Fit"
+    },
+    {
+      "id": 4,
+      "question": "What are your key strengths and how would they benefit {company_name}?",
+      "category": "Skills"
+    },
+    {
+      "id": 5,
+      "question": "Where do you see yourself in five years at {company_name}?",
+      "category": "Career Goals"
+    }
+  ]
+}
