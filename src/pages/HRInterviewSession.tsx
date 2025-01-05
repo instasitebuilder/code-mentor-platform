@@ -5,11 +5,13 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useHRInterview } from '@/hooks/useHRInterview';
 import { useState, useRef, useEffect } from 'react';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function HRInterviewSession() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState('');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -59,6 +61,23 @@ export default function HRInterviewSession() {
             ...prev,
             [currentQuestion.id]: audioUrl
           }));
+
+          // Convert speech to text using a service
+          const formData = new FormData();
+          formData.append('audio', audioBlob);
+          try {
+            const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              },
+            });
+            const data = await response.json();
+            setTranscription(data.text);
+          } catch (error) {
+            console.error('Error transcribing audio:', error);
+          }
         }
       };
 
@@ -91,10 +110,10 @@ export default function HRInterviewSession() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Video Feed */}
-        <div className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg">
+        <div className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-purple-500">
           <video
             ref={videoRef}
             autoPlay
@@ -106,22 +125,26 @@ export default function HRInterviewSession() {
 
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
               Interview with {interviewDetails?.company_name}
             </h1>
-            <Progress value={progress} className="w-full" />
-            <p className="text-sm text-gray-500">
+            <Progress value={progress} className="w-full bg-gray-700" />
+            <p className="text-sm text-gray-300">
               Question {currentQuestionIndex + 1} of {questions.length}
             </p>
           </div>
 
           <AIInterviewer 
             question={currentQuestion?.question || ''} 
+            onQuestionRead={() => {
+              // Enable recording after question is read
+              startRecording();
+            }}
           />
 
-          <Card className="p-6 space-y-4">
-            <h2 className="text-xl font-semibold">
-              {currentQuestion?.question}
+          <Card className="p-6 space-y-4 bg-gray-800 border-purple-500">
+            <h2 className="text-xl font-semibold text-purple-400">
+              Question {currentQuestionIndex + 1}: {currentQuestion?.question}
             </h2>
 
             <div className="space-y-4">
@@ -129,10 +152,20 @@ export default function HRInterviewSession() {
                 <Button
                   onClick={isRecording ? stopRecording : startRecording}
                   variant={isRecording ? "destructive" : "default"}
+                  className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-500 hover:bg-purple-600'}`}
                 >
                   {isRecording ? "Stop Recording" : "Start Recording"}
                 </Button>
               </div>
+
+              {transcription && (
+                <Textarea
+                  value={transcription}
+                  readOnly
+                  className="w-full mt-4 bg-gray-700 text-white border-purple-500"
+                  rows={4}
+                />
+              )}
 
               {responses[currentQuestion?.id] && (
                 <div className="mt-4">
@@ -148,10 +181,12 @@ export default function HRInterviewSession() {
                   if (isComplete) {
                     navigate('/dashboard');
                   }
+                  setTranscription('');
                 }}
                 disabled={!responses[currentQuestion?.id]}
+                className="bg-green-500 hover:bg-green-600"
               >
-                Submit Response
+                {currentQuestionIndex === questions.length - 1 ? "Complete Interview" : "Next Question"}
               </Button>
             </div>
           </Card>

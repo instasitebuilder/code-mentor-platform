@@ -14,6 +14,8 @@ export function AIInterviewer({ question, onQuestionRead }: AIInterviewerProps) 
 
   useEffect(() => {
     const readQuestion = async () => {
+      if (!question) return;
+      
       try {
         setIsReading(true);
         const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL/stream', {
@@ -54,13 +56,11 @@ export function AIInterviewer({ question, onQuestionRead }: AIInterviewerProps) 
       }
     };
 
-    if (question) {
-      readQuestion();
-    }
+    readQuestion();
   }, [question, onQuestionRead]);
 
   return (
-    <Card className="p-4 flex items-center gap-4 bg-gradient-to-r from-blue-500 to-purple-500">
+    <Card className="p-4 flex items-center gap-4 bg-gradient-to-r from-purple-500 to-pink-500">
       <Avatar className={`h-16 w-16 ${isReading ? 'animate-pulse' : ''}`}>
         <AvatarImage src="/ai-interviewer.png" alt="AI Interviewer" />
         <AvatarFallback>AI</AvatarFallback>
