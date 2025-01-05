@@ -1,11 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { AIInterviewer } from '@/components/AIInterviewer';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useHRInterview } from '@/hooks/useHRInterview';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function HRInterviewSession() {
   const { id } = useParams();
@@ -79,7 +78,7 @@ export default function HRInterviewSession() {
   };
 
   // Start video when component mounts
-  useState(() => {
+  useEffect(() => {
     startVideo();
   }, []);
 
