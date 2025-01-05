@@ -27,17 +27,19 @@ export default function HRInterviewSession() {
     currentQuestion,
   } = useHRInterview(id!);
 
-  // Start video feed
-  const startVideo = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+  useEffect(() => {
+    const startVideo = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        console.error("Error accessing camera:", err);
       }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-    }
-  };
+    };
+    startVideo();
+  }, []);
 
   // Start recording
   const startRecording = async () => {
@@ -75,6 +77,14 @@ export default function HRInterviewSession() {
             });
             const data = await response.json();
             setTranscription(data.text);
+            
+            // Update responses with transcription
+            if (currentQuestion) {
+              setResponses(prev => ({
+                ...prev,
+                [currentQuestion.id]: data.text
+              }));
+            }
           } catch (error) {
             console.error('Error transcribing audio:', error);
           }
@@ -96,11 +106,6 @@ export default function HRInterviewSession() {
     }
   };
 
-  // Start video when component mounts
-  useEffect(() => {
-    startVideo();
-  }, []);
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -113,13 +118,13 @@ export default function HRInterviewSession() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Video Feed */}
-        <div className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-purple-500">
+        <div className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-purple-500 bg-gradient-to-r from-purple-500 to-pink-500 p-1">
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-lg"
           />
         </div>
 
@@ -142,8 +147,8 @@ export default function HRInterviewSession() {
             }}
           />
 
-          <Card className="p-6 space-y-4 bg-gray-800 border-purple-500">
-            <h2 className="text-xl font-semibold text-purple-400">
+          <Card className="p-6 space-y-4 bg-gradient-to-r from-gray-800 to-gray-900 border-purple-500">
+            <h2 className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
               Question {currentQuestionIndex + 1}: {currentQuestion?.question}
             </h2>
 
@@ -152,22 +157,25 @@ export default function HRInterviewSession() {
                 <Button
                   onClick={isRecording ? stopRecording : startRecording}
                   variant={isRecording ? "destructive" : "default"}
-                  className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-500 hover:bg-purple-600'}`}
+                  className={`${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-500 hover:bg-purple-600'} transition-all duration-300`}
                 >
                   {isRecording ? "Stop Recording" : "Start Recording"}
                 </Button>
               </div>
 
               {transcription && (
-                <Textarea
-                  value={transcription}
-                  readOnly
-                  className="w-full mt-4 bg-gray-700 text-white border-purple-500"
-                  rows={4}
-                />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-purple-300">Your Response:</label>
+                  <Textarea
+                    value={transcription}
+                    readOnly
+                    className="w-full mt-2 bg-gray-700 text-white border-purple-500 rounded-lg"
+                    rows={4}
+                  />
+                </div>
               )}
 
-              {responses[currentQuestion?.id] && (
+              {responses[currentQuestion?.id] && !transcription && (
                 <div className="mt-4">
                   <audio src={responses[currentQuestion?.id]} controls className="w-full" />
                 </div>
@@ -184,7 +192,7 @@ export default function HRInterviewSession() {
                   setTranscription('');
                 }}
                 disabled={!responses[currentQuestion?.id]}
-                className="bg-green-500 hover:bg-green-600"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
               >
                 {currentQuestionIndex === questions.length - 1 ? "Complete Interview" : "Next Question"}
               </Button>
