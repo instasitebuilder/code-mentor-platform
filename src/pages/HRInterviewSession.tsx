@@ -4,166 +4,132 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { AIInterviewer } from '@/components/AIInterviewer';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+
+interface Question {
+  id: string;
+  question: string;
+  is_company_specific: boolean;
+}
 
 export default function HRInterviewSession() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [responses, setResponses] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [currentQuestion, setCurrentQuestion] = useState('');
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const [interviewDetails, setInterviewDetails] = useState<{
+    company_name: string;
+    position: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    const setupInterview = async () => {
+    const fetchInterviewDetails = async () => {
       try {
-        // Get interview details
         const { data: interview, error: interviewError } = await supabase
           .from('hr_interviews')
           .select('*')
           .eq('id', id)
           .single();
 
-        if (interviewError || !interview) throw interviewError;
+        if (interviewError) throw interviewError;
 
-        // Setup camera
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
-        
-        setMediaStream(stream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+        setInterviewDetails(interview);
 
-        // Generate first question
-        await generateNextQuestion();
+        const { data: questionsData, error: questionsError } = await supabase
+          .from('hr_interview_questions')
+          .select('*')
+          .order('created_at');
+
+        if (questionsError) throw questionsError;
+
+        // Process questions to include company name and position
+        const processedQuestions = questionsData.map(q => ({
+          ...q,
+          question: q.is_company_specific 
+            ? q.question
+                .replace('{company_name}', interview.company_name)
+                .replace('{position}', interview.position)
+            : q.question
+        }));
+
+        setQuestions(processedQuestions);
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error setting up interview:', error);
+        console.error('Error fetching interview details:', error);
         toast({
           title: "Error",
-          description: "Failed to setup interview session",
+          description: "Failed to load interview questions",
           variant: "destructive"
         });
         navigate('/hr-interview');
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    setupInterview();
+    if (id) {
+      fetchInterviewDetails();
+    }
+  }, [id, navigate]);
 
-    return () => {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
+  const handleNextQuestion = async () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Interview completed
+      try {
+        await supabase
+          .from('hr_interviews')
+          .update({ status: 'completed' })
+          .eq('id', id);
+
+        toast({
+          title: "Interview Completed",
+          description: "Your responses have been saved successfully.",
+        });
+        navigate('/dashboard');
+      } catch (error) {
+        console.error('Error completing interview:', error);
+        toast({
+          title: "Error",
+          description: "Failed to complete interview",
+          variant: "destructive"
+        });
       }
-    };
-  }, [user, id, navigate]);
-
-  const generateNextQuestion = async () => {
-    // For now, using a simple array of questions. In production, this would use an AI service
-    const questions = [
-      "Tell me about yourself and your background.",
-      "Why are you interested in this position?",
-      "What are your greatest strengths?",
-      "Where do you see yourself in 5 years?",
-      "Why should we hire you?"
-    ];
-    
-    const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-    setCurrentQuestion(randomQuestion);
-
-    // Save question to database
-    await supabase
-      .from('hr_interview_questions')
-      .insert({
-        interview_id: id,
-        question: randomQuestion
-      });
-  };
-
-  const startRecording = () => {
-    if (!mediaStream) return;
-
-    chunksRef.current = [];
-    const mediaRecorder = new MediaRecorder(mediaStream);
-    
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        chunksRef.current.push(event.data);
-      }
-    };
-
-    mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-      const file = new File([audioBlob], 'response.webm', { type: 'audio/webm' });
-
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('interview_responses')
-        .upload(`${id}/${Date.now()}.webm`, file);
-
-      if (uploadError) {
-        console.error('Error uploading response:', uploadError);
-        return;
-      }
-
-      // Update question record with response URL
-      await supabase
-        .from('hr_interview_questions')
-        .update({
-          audio_response_url: uploadData.path
-        })
-        .eq('interview_id', id)
-        .eq('question', currentQuestion);
-
-      // Generate next question
-      await generateNextQuestion();
-    };
-
-    mediaRecorderRef.current = mediaRecorder;
-    mediaRecorder.start();
-    setIsRecording(true);
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
     }
   };
 
-  const endInterview = async () => {
-    try {
-      // Update interview status
-      await supabase
-        .from('hr_interviews')
-        .update({ status: 'completed' })
-        .eq('id', id);
+  const handleResponseSubmit = async () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return;
 
-      // Generate and store feedback PDF (this would be implemented with a backend service)
+    try {
+      const { error } = await supabase
+        .from('hr_interview_questions')
+        .update({ 
+          audio_response_url: null, // This would be updated with actual audio URL
+          feedback: responses[currentQuestion.id]
+        })
+        .eq('id', currentQuestion.id);
+
+      if (error) throw error;
+
       toast({
-        title: "Interview Completed",
-        description: "Your feedback will be available in the dashboard soon.",
+        title: "Response Saved",
+        description: "Your answer has been recorded successfully.",
       });
 
-      navigate('/dashboard');
+      handleNextQuestion();
     } catch (error) {
-      console.error('Error ending interview:', error);
+      console.error('Error saving response:', error);
       toast({
         title: "Error",
-        description: "Failed to end interview session",
+        description: "Failed to save your response",
         variant: "destructive"
       });
     }
@@ -172,49 +138,57 @@ export default function HRInterviewSession() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const progress = (currentQuestionIndex / questions.length) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-              Interview Session
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Interview with {interviewDetails?.company_name}
+            </h1>
+            <Progress value={progress} className="w-full" />
+            <p className="text-sm text-gray-500">
+              Question {currentQuestionIndex + 1} of {questions.length}
+            </p>
+          </div>
+
+          <AIInterviewer 
+            question={currentQuestion?.question || ''} 
+          />
+
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-semibold">
+              {currentQuestion?.question}
             </h2>
 
-            <div className="space-y-6">
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            <Textarea
+              value={responses[currentQuestion?.id] || ''}
+              onChange={(e) => setResponses(prev => ({
+                ...prev,
+                [currentQuestion?.id]: e.target.value
+              }))}
+              placeholder="Your response will be recorded here as you speak..."
+              className="min-h-[200px]"
+              readOnly
+            />
 
-              <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <h3 className="font-semibold mb-2">Current Question:</h3>
-                <p className="text-lg">{currentQuestion}</p>
-              </div>
-
-              <div className="flex gap-4">
-                <Button
-                  onClick={isRecording ? stopRecording : startRecording}
-                  variant={isRecording ? "destructive" : "default"}
-                >
-                  {isRecording ? 'Stop Recording' : 'Start Recording'}
-                </Button>
-                <Button onClick={endInterview} variant="outline">
-                  End Interview
-                </Button>
-              </div>
+            <div className="flex justify-end gap-4">
+              <Button
+                onClick={handleResponseSubmit}
+                disabled={!responses[currentQuestion?.id]}
+              >
+                Submit Response
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>
