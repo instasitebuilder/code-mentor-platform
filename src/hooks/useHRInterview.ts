@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Question, InterviewDetails, EvaluationStep } from '@/types/hr-interview';
 import { useToast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 export function useHRInterview(interviewId: string) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
