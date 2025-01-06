@@ -1,101 +1,150 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { AIInterviewerIntro } from '@/components/AIInterviewerIntro';
-import { AIInterviewer } from '@/components/AIInterviewer';
-import { useHRInterview } from '@/hooks/useHRInterview';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { Navbar } from '@/components/Navbar';
+import { Loader2 } from 'lucide-react';
 
 export default function HRInterview() {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [isIntroComplete, setIsIntroComplete] = useState(false);
-  const [interviewId, setInterviewId] = useState<string>('');
-  
-  useEffect(() => {
-    const createInterview = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+  const { toast } = useToast();
+  const [companyName, setCompanyName] = useState('');
+  const [position, setPosition] = useState('');
+  const [isStarting, setIsStarting] = useState(false);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-      const { data, error } = await supabase
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    return () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [mediaStream]);
+
+  const startInterview = async () => {
+    if (!companyName || !position) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both company name and position",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsStarting(true);
+      
+      // Create interview record in Supabase with status field
+      const { data: interview, error } = await supabase
         .from('hr_interviews')
         .insert({
-          user_id: user.id,
-          company_name: 'Example Corp', // This could be made dynamic
-          position: 'Software Engineer', // This could be made dynamic
+          company_name: companyName,
+          position: position,
+          user_id: user?.id,
+          status: 'in_progress' // Add the required status field
         })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating interview:', error);
-        return;
+      if (error) throw error;
+
+      // Request camera access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+      
+      setMediaStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
 
-      setInterviewId(data.id);
-    };
-
-    createInterview();
-  }, [navigate]);
-
-  const {
-    currentQuestion,
-    responses,
-    setResponses,
-    handleResponseSubmit,
-    progress,
-    isLoading,
-  } = useHRInterview(interviewId);
-
-  if (isLoading || !interviewId) {
-    return <div>Loading...</div>;
-  }
+      // Navigate to the interview session
+      navigate(`/hr-interview/${interview.id}`);
+    } catch (error) {
+      console.error('Error starting interview:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start interview. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsStarting(false);
+    }
+  };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <div className="space-y-6">
-        {!isIntroComplete ? (
-          <AIInterviewerIntro onIntroComplete={() => setIsIntroComplete(true)} />
-        ) : (
-          <>
-            <Progress value={progress} className="w-full" />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto space-y-8">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+            <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
+              HR Interview Simulation
+            </h1>
             
-            <AIInterviewer 
-              question={currentQuestion?.question || ''} 
-              onQuestionRead={() => {}} 
-            />
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="company">Company Name</Label>
+                <Input
+                  id="company"
+                  placeholder="Enter target company name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+              </div>
 
-            <Card className="p-6">
-              <textarea
-                className="w-full h-32 p-2 border rounded"
-                value={responses[currentQuestion?.id || ''] || ''}
-                onChange={(e) => 
-                  setResponses(prev => ({
-                    ...prev,
-                    [currentQuestion?.id || '']: e.target.value
-                  }))
-                }
-                placeholder="Type your response here..."
-              />
-              
-              <Button 
-                className="mt-4"
-                onClick={async () => {
-                  const isComplete = await handleResponseSubmit();
-                  if (isComplete) {
-                    navigate('/dashboard');
-                  }
-                }}
+              <div className="space-y-2">
+                <Label htmlFor="position">Position</Label>
+                <Input
+                  id="position"
+                  placeholder="Enter target position"
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                />
+              </div>
+
+              <Button
+                className="w-full"
+                onClick={startInterview}
+                disabled={isStarting}
               >
-                Next Question
+                {isStarting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Starting Interview...
+                  </>
+                ) : (
+                  'Start Interview'
+                )}
               </Button>
-            </Card>
-          </>
-        )}
+            </div>
+          </div>
+
+          {mediaStream && (
+            <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

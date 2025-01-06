@@ -1,37 +1,30 @@
 {
-  "introduction": "Hello! I'm Sarah, your AI interviewer. I'll be asking you a series of questions to learn more about you and assess your fit for {company_name}'s {position} position.",
+  "introduction": "Hello! I'm Sarah, your interviewer today. I'll be asking you a series of questions to learn more about you.",
   "questions": [
     {
       "id": 1,
-      "type": "introduction",
-      "question": "Could you please tell me about your background and what interests you about the {position} role at {company_name}?"
+      "question": "Tell me about yourself and your background.",
+      "category": "Introduction"
     },
     {
       "id": 2,
-      "type": "experience",
-      "question": "Can you describe a challenging project you've worked on and how you handled it?"
+      "question": "Why are you interested in joining {company_name}?",
+      "category": "Company Interest"
     },
     {
       "id": 3,
-      "type": "behavioral",
-      "question": "Tell me about a time when you had to work under pressure to meet a deadline. How did you manage it?"
+      "question": "What makes you a good fit for the {position} role?",
+      "category": "Role Fit"
     },
     {
       "id": 4,
-      "type": "technical",
-      "question": "What are your key strengths that make you suitable for this {position} position?"
+      "question": "What are your key strengths and how would they benefit {company_name}?",
+      "category": "Skills"
     },
     {
       "id": 5,
-      "type": "cultural",
-      "question": "How do you see yourself contributing to {company_name}'s culture and values?"
+      "question": "Where do you see yourself in five years at {company_name}?",
+      "category": "Career Goals"
     }
-  ],
-  "evaluation_criteria": {
-    "relevance": "How relevant is the response to the question asked?",
-    "clarity": "How clear and structured is the response?",
-    "depth": "How detailed and comprehensive is the response?",
-    "examples": "Does the response include specific examples?",
-    "communication": "How effective is the overall communication style?"
-  }
+  ]
 }
