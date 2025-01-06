@@ -5,9 +5,22 @@ export interface Question {
   feedback: string | null;
   interview_id: string;
   created_at: string;
+  evaluation_steps: EvaluationStep[];
+}
+
+export interface EvaluationStep {
+  name: string;
+  score: number;
 }
 
 export interface InterviewDetails {
+  id: string;
+  user_id: string;
   company_name: string;
   position: string;
+  created_at: string;
+  feedback_pdf_url: string | null;
+  status: 'in_progress' | 'completed';
+  timer_completed: boolean;
+  time_spent_seconds: number;
 }

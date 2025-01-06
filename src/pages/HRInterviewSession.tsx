@@ -3,7 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useHRInterview } from '@/hooks/useHRInterview';
 import { AIInterviewerIntro } from '@/components/AIInterviewerIntro';
 import { InterviewQuestionCard } from '@/components/InterviewQuestionCard';
+import { QuestionTimer } from '@/components/QuestionTimer';
 import { useToast } from '@/components/ui/use-toast';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+
+const MAX_QUESTIONS = 5;
+const MAX_TIME_SECONDS = 600; // 10 minutes
 
 export default function HRInterviewSession() {
   const { id } = useParams();
@@ -13,11 +20,12 @@ export default function HRInterviewSession() {
   const [transcription, setTranscription] = useState('');
   const [introCompleted, setIntroCompleted] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [timeSpent, setTimeSpent] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const {
-    currentQuestionIndex,
     responses,
     setResponses,
     isLoading,
@@ -31,13 +39,14 @@ export default function HRInterviewSession() {
       try {
         const response = await fetch('/hr-interview-questions.json');
         const data = await response.json();
-        const processedQuestions = data.questions.map((q: any) => ({
-          ...q,
-          question: q.question
-            .replace('{company_name}', interviewDetails?.company_name || '')
-            .replace('{position}', interviewDetails?.position || '')
-        }));
-        setQuestions(processedQuestions);
+        
+        // Get first question and 4 random questions
+        const firstQuestion = data.questions[0];
+        const remainingQuestions = data.questions.slice(1);
+        const shuffledQuestions = remainingQuestions.sort(() => Math.random() - 0.5);
+        const selectedQuestions = [firstQuestion, ...shuffledQuestions.slice(0, MAX_QUESTIONS - 1)];
+        
+        setQuestions(selectedQuestions);
       } catch (error) {
         console.error('Error loading questions:', error);
         toast({
@@ -66,6 +75,33 @@ export default function HRInterviewSession() {
     };
     startVideo();
   }, []);
+
+  useEffect(() => {
+    if (timeSpent >= MAX_TIME_SECONDS) {
+      handleTimeUp();
+    }
+  }, [timeSpent]);
+
+  const handleTimeUp = async () => {
+    try {
+      await supabase
+        .from('hr_interviews')
+        .update({ 
+          timer_completed: true,
+          time_spent_seconds: timeSpent,
+          status: 'completed'
+        })
+        .eq('id', id);
+
+      toast({
+        title: "Time's up!",
+        description: "Your interview session has ended.",
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error updating interview:', error);
+    }
+  };
 
   const startRecording = async () => {
     try {
@@ -131,14 +167,19 @@ export default function HRInterviewSession() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8">
+      <div className="container mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold">HR Interview Session</h1>
+          <QuestionTimer onTimeUpdate={setTimeSpent} />
+        </div>
+
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-purple-500 bg-gradient-to-r from-purple-500 to-pink-500 p-1"
+          className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-purple-500"
         />
 
         <div className="max-w-4xl mx-auto space-y-8">
@@ -149,17 +190,19 @@ export default function HRInterviewSession() {
               <InterviewQuestionCard
                 currentQuestion={questions[currentQuestionIndex].question}
                 questionNumber={currentQuestionIndex + 1}
-                totalQuestions={questions.length}
+                totalQuestions={MAX_QUESTIONS}
                 transcription={transcription}
                 isRecording={isRecording}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
                 onNextQuestion={async () => {
                   const isComplete = await handleResponseSubmit();
-                  if (isComplete) {
+                  if (currentQuestionIndex < MAX_QUESTIONS - 1) {
+                    setCurrentQuestionIndex(prev => prev + 1);
+                    setTranscription('');
+                  } else if (isComplete) {
                     navigate('/dashboard');
                   }
-                  setTranscription('');
                 }}
               />
             )

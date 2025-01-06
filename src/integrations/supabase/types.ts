@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           audio_response_url: string | null
           created_at: string
+          evaluation_steps: Json | null
           feedback: string | null
           id: string
           interview_id: string
@@ -62,6 +63,7 @@ export type Database = {
         Insert: {
           audio_response_url?: string | null
           created_at?: string
+          evaluation_steps?: Json | null
           feedback?: string | null
           id?: string
           interview_id: string
@@ -70,6 +72,7 @@ export type Database = {
         Update: {
           audio_response_url?: string | null
           created_at?: string
+          evaluation_steps?: Json | null
           feedback?: string | null
           id?: string
           interview_id?: string
@@ -93,6 +96,8 @@ export type Database = {
           id: string
           position: string
           status: string
+          time_spent_seconds: number | null
+          timer_completed: boolean | null
           user_id: string
         }
         Insert: {
@@ -102,6 +107,8 @@ export type Database = {
           id?: string
           position: string
           status?: string
+          time_spent_seconds?: number | null
+          timer_completed?: boolean | null
           user_id: string
         }
         Update: {
@@ -111,6 +118,8 @@ export type Database = {
           id?: string
           position?: string
           status?: string
+          time_spent_seconds?: number | null
+          timer_completed?: boolean | null
           user_id?: string
         }
         Relationships: []

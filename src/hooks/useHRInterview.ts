@@ -21,68 +21,21 @@ export function useHRInterview(interviewId: string) {
           .single();
 
         if (interviewError) throw interviewError;
-
         setInterviewDetails(interview);
 
-        const defaultQuestions = [
-          "Tell me something about yourself",
-          "Why do you want to work at {company_name}?",
-          "What interests you about the {position} role?",
-          "What are your key strengths that make you suitable for {position}?",
-          "Where do you see yourself in 5 years?",
-          "How do you handle work pressure?",
-          "What's your biggest professional achievement?",
-          "Why should we hire you for {position}?",
-          "What do you know about {company_name}?",
-          "Do you have any questions for us?"
-        ];
-
-        // Create questions if they don't exist
-        const { data: existingQuestions } = await supabase
+        const { data: existingQuestions, error: questionsError } = await supabase
           .from('hr_interview_questions')
           .select('*')
           .eq('interview_id', interviewId);
 
-        if (!existingQuestions || existingQuestions.length === 0) {
-          const questionsToInsert = defaultQuestions.map(q => ({
-            interview_id: interviewId,
-            question: q
-          }));
-
-          const { data: insertedQuestions, error: insertError } = await supabase
-            .from('hr_interview_questions')
-            .insert(questionsToInsert)
-            .select();
-
-          if (insertError) throw insertError;
-          
-          // Process questions to include company name and position
-          const processedQuestions = insertedQuestions.map(q => ({
-            ...q,
-            question: q.question
-              .replace('{company_name}', interview.company_name)
-              .replace('{position}', interview.position)
-          }));
-
-          setQuestions(processedQuestions);
-        } else {
-          // Process existing questions to include company name and position
-          const processedQuestions = existingQuestions.map(q => ({
-            ...q,
-            question: q.question
-              .replace('{company_name}', interview.company_name)
-              .replace('{position}', interview.position)
-          }));
-
-          setQuestions(processedQuestions);
-        }
-
+        if (questionsError) throw questionsError;
+        setQuestions(existingQuestions || []);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching interview details:', error);
         toast({
           title: "Error",
-          description: "Failed to load interview questions",
+          description: "Failed to load interview details",
           variant: "destructive"
         });
       }
@@ -93,44 +46,68 @@ export function useHRInterview(interviewId: string) {
     }
   }, [interviewId, toast]);
 
-  const handleNextQuestion = async () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      // Interview completed
-      try {
-        await supabase
-          .from('hr_interviews')
-          .update({ status: 'completed' })
-          .eq('id', interviewId);
+  const evaluateResponse = async (question: string, response: string) => {
+    try {
+      const prompt = `
+        Evaluate this HR interview response:
+        Question: ${question}
+        Response: ${response}
+        
+        Please evaluate in these 5 steps (2 points each, total 10 points):
+        1. Relevance to question
+        2. Clarity and articulation
+        3. Professional demeanor
+        4. Specific examples provided
+        5. Overall impression
+        
+        Provide a score for each step and detailed feedback.
+      `;
 
-        toast({
-          title: "Interview Completed",
-          description: "Your responses have been saved successfully.",
-        });
-        return true; // Signal completion
-      } catch (error) {
-        console.error('Error completing interview:', error);
-        toast({
-          title: "Error",
-          description: "Failed to complete interview",
-          variant: "destructive"
-        });
-        return false;
-      }
+      const groqResponse = await fetch('https://api.groq.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: prompt }],
+          model: "llama3-8b-8192",
+        }),
+      });
+
+      const evaluation = await groqResponse.json();
+      return {
+        feedback: evaluation.choices[0].message.content,
+        steps: [
+          { name: 'Relevance', score: 0 },
+          { name: 'Clarity', score: 0 },
+          { name: 'Professionalism', score: 0 },
+          { name: 'Examples', score: 0 },
+          { name: 'Overall', score: 0 }
+        ]
+      };
+    } catch (error) {
+      console.error('Error evaluating response:', error);
+      throw error;
     }
   };
 
   const handleResponseSubmit = async () => {
     const currentQuestion = questions[currentQuestionIndex];
-    if (!currentQuestion) return;
+    if (!currentQuestion) return false;
 
     try {
+      const evaluation = await evaluateResponse(
+        currentQuestion.question,
+        responses[currentQuestion.id]
+      );
+
       const { error } = await supabase
         .from('hr_interview_questions')
         .update({ 
           audio_response_url: null,
-          feedback: responses[currentQuestion.id]
+          feedback: evaluation.feedback,
+          evaluation_steps: evaluation.steps
         })
         .eq('id', currentQuestion.id);
 
@@ -138,10 +115,10 @@ export function useHRInterview(interviewId: string) {
 
       toast({
         title: "Response Saved",
-        description: "Your answer has been recorded successfully.",
+        description: "Your answer has been recorded and evaluated.",
       });
 
-      return handleNextQuestion();
+      return currentQuestionIndex === questions.length - 1;
     } catch (error) {
       console.error('Error saving response:', error);
       toast({
@@ -161,7 +138,6 @@ export function useHRInterview(interviewId: string) {
     isLoading,
     interviewDetails,
     handleResponseSubmit,
-    progress: (currentQuestionIndex / questions.length) * 100,
     currentQuestion: questions[currentQuestionIndex],
   };
 }
