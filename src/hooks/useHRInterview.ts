@@ -24,59 +24,16 @@ export function useHRInterview(interviewId: string) {
 
         setInterviewDetails(interview);
 
-        const defaultQuestions = [
-          "Tell me something about yourself",
-          "Why do you want to work at {company_name}?",
-          "What interests you about the {position} role?",
-          "What are your key strengths that make you suitable for {position}?",
-          "Where do you see yourself in 5 years?",
-          "How do you handle work pressure?",
-          "What's your biggest professional achievement?",
-          "Why should we hire you for {position}?",
-          "What do you know about {company_name}?",
-          "Do you have any questions for us?"
-        ];
+        const response = await fetch('/hr-interview-questions.json');
+        const data = await response.json();
+        const processedQuestions = data.questions.map((q: any) => ({
+          ...q,
+          question: q.question
+            .replace('{company_name}', interview.company_name)
+            .replace('{position}', interview.position)
+        }));
 
-        // Create questions if they don't exist
-        const { data: existingQuestions } = await supabase
-          .from('hr_interview_questions')
-          .select('*')
-          .eq('interview_id', interviewId);
-
-        if (!existingQuestions || existingQuestions.length === 0) {
-          const questionsToInsert = defaultQuestions.map(q => ({
-            interview_id: interviewId,
-            question: q
-          }));
-
-          const { data: insertedQuestions, error: insertError } = await supabase
-            .from('hr_interview_questions')
-            .insert(questionsToInsert)
-            .select();
-
-          if (insertError) throw insertError;
-          
-          // Process questions to include company name and position
-          const processedQuestions = insertedQuestions.map(q => ({
-            ...q,
-            question: q.question
-              .replace('{company_name}', interview.company_name)
-              .replace('{position}', interview.position)
-          }));
-
-          setQuestions(processedQuestions);
-        } else {
-          // Process existing questions to include company name and position
-          const processedQuestions = existingQuestions.map(q => ({
-            ...q,
-            question: q.question
-              .replace('{company_name}', interview.company_name)
-              .replace('{position}', interview.position)
-          }));
-
-          setQuestions(processedQuestions);
-        }
-
+        setQuestions(processedQuestions);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching interview details:', error);
