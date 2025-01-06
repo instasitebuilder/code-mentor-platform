@@ -1,13 +1,23 @@
 export interface Question {
-  id: string;
+  id: number;
+  type: string;
   question: string;
-  audio_response_url: string | null;
-  feedback: string | null;
-  interview_id: string;
-  created_at: string;
 }
 
 export interface InterviewDetails {
+  id: string;
+  user_id: string;
   company_name: string;
   position: string;
+  created_at: string;
+  status: 'in_progress' | 'completed';
+  feedback_pdf_url?: string;
+}
+
+export interface EvaluationCriteria {
+  relevance: string;
+  clarity: string;
+  depth: string;
+  examples: string;
+  communication: string;
 }
