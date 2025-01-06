@@ -1,30 +1,37 @@
 {
-  "introduction": "Hello! I'm Sarah, your interviewer today. I'll be asking you a series of questions to learn more about you.",
+  "introduction": "Hello! I'm Sarah, your AI interviewer. I'll be asking you a series of questions to learn more about you and assess your fit for {company_name}'s {position} position.",
   "questions": [
     {
       "id": 1,
-      "question": "Tell me about yourself and your background.",
-      "category": "Introduction"
+      "type": "introduction",
+      "question": "Could you please tell me about your background and what interests you about the {position} role at {company_name}?"
     },
     {
       "id": 2,
-      "question": "Why are you interested in joining {company_name}?",
-      "category": "Company Interest"
+      "type": "experience",
+      "question": "Can you describe a challenging project you've worked on and how you handled it?"
     },
     {
       "id": 3,
-      "question": "What makes you a good fit for the {position} role?",
-      "category": "Role Fit"
+      "type": "behavioral",
+      "question": "Tell me about a time when you had to work under pressure to meet a deadline. How did you manage it?"
     },
     {
       "id": 4,
-      "question": "What are your key strengths and how would they benefit {company_name}?",
-      "category": "Skills"
+      "type": "technical",
+      "question": "What are your key strengths that make you suitable for this {position} position?"
     },
     {
       "id": 5,
-      "question": "Where do you see yourself in five years at {company_name}?",
-      "category": "Career Goals"
+      "type": "cultural",
+      "question": "How do you see yourself contributing to {company_name}'s culture and values?"
     }
-  ]
+  ],
+  "evaluation_criteria": {
+    "relevance": "How relevant is the response to the question asked?",
+    "clarity": "How clear and structured is the response?",
+    "depth": "How detailed and comprehensive is the response?",
+    "examples": "Does the response include specific examples?",
+    "communication": "How effective is the overall communication style?"
+  }
 }
