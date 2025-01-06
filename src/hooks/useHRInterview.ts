@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Question, InterviewDetails } from '@/types/hr-interview';
+import { Question, InterviewDetails, EvaluationStep } from '@/types/hr-interview';
 import { useToast } from '@/hooks/use-toast';
 
 export function useHRInterview(interviewId: string) {
@@ -21,7 +21,13 @@ export function useHRInterview(interviewId: string) {
           .single();
 
         if (interviewError) throw interviewError;
-        setInterviewDetails(interview);
+        
+        // Type assertion to ensure status is correct
+        const typedInterview: InterviewDetails = {
+          ...interview,
+          status: interview.status as 'in_progress' | 'completed'
+        };
+        setInterviewDetails(typedInterview);
 
         const { data: existingQuestions, error: questionsError } = await supabase
           .from('hr_interview_questions')
@@ -29,7 +35,14 @@ export function useHRInterview(interviewId: string) {
           .eq('interview_id', interviewId);
 
         if (questionsError) throw questionsError;
-        setQuestions(existingQuestions || []);
+        
+        // Transform the questions to match the Question type
+        const typedQuestions: Question[] = (existingQuestions || []).map(q => ({
+          ...q,
+          evaluation_steps: q.evaluation_steps as EvaluationStep[] || null
+        }));
+        
+        setQuestions(typedQuestions);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching interview details:', error);
@@ -84,7 +97,7 @@ export function useHRInterview(interviewId: string) {
           { name: 'Professionalism', score: 0 },
           { name: 'Examples', score: 0 },
           { name: 'Overall', score: 0 }
-        ]
+        ] as EvaluationStep[]
       };
     } catch (error) {
       console.error('Error evaluating response:', error);

@@ -5,7 +5,7 @@ export interface Question {
   feedback: string | null;
   interview_id: string;
   created_at: string;
-  evaluation_steps: EvaluationStep[];
+  evaluation_steps: EvaluationStep[] | null;
 }
 
 export interface EvaluationStep {
@@ -21,6 +21,6 @@ export interface InterviewDetails {
   created_at: string;
   feedback_pdf_url: string | null;
   status: 'in_progress' | 'completed';
-  timer_completed: boolean;
-  time_spent_seconds: number;
+  timer_completed: boolean | null;
+  time_spent_seconds: number | null;
 }
