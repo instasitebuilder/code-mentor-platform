@@ -22,15 +22,21 @@ export function useHRInterview(interviewId: string) {
 
         if (interviewError) throw interviewError;
 
-        setInterviewDetails(interview);
+        // Ensure the status is properly typed
+        const typedInterview: InterviewDetails = {
+          ...interview,
+          status: interview.status as 'in_progress' | 'completed'
+        };
+
+        setInterviewDetails(typedInterview);
 
         const response = await fetch('/hr-interview-questions.json');
         const data = await response.json();
         const processedQuestions = data.questions.map((q: any) => ({
           ...q,
           question: q.question
-            .replace('{company_name}', interview.company_name)
-            .replace('{position}', interview.position)
+            .replace('{company_name}', typedInterview.company_name)
+            .replace('{position}', typedInterview.position)
         }));
 
         setQuestions(processedQuestions);
