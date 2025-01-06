@@ -22,7 +22,6 @@ export function useHRInterview(interviewId: string) {
 
         if (interviewError) throw interviewError;
         
-        // Type assertion to ensure status is correct
         const typedInterview: InterviewDetails = {
           ...interview,
           status: interview.status as 'in_progress' | 'completed'
@@ -36,10 +35,11 @@ export function useHRInterview(interviewId: string) {
 
         if (questionsError) throw questionsError;
         
-        // Transform the questions to match the Question type
         const typedQuestions: Question[] = (existingQuestions || []).map(q => ({
           ...q,
-          evaluation_steps: q.evaluation_steps as EvaluationStep[] || null
+          evaluation_steps: Array.isArray(q.evaluation_steps) 
+            ? (q.evaluation_steps as unknown as EvaluationStep[])
+            : null
         }));
         
         setQuestions(typedQuestions);
@@ -89,15 +89,17 @@ export function useHRInterview(interviewId: string) {
       });
 
       const evaluation = await groqResponse.json();
+      const evaluationSteps: EvaluationStep[] = [
+        { name: 'Relevance', score: 0 },
+        { name: 'Clarity', score: 0 },
+        { name: 'Professionalism', score: 0 },
+        { name: 'Examples', score: 0 },
+        { name: 'Overall', score: 0 }
+      ];
+
       return {
         feedback: evaluation.choices[0].message.content,
-        steps: [
-          { name: 'Relevance', score: 0 },
-          { name: 'Clarity', score: 0 },
-          { name: 'Professionalism', score: 0 },
-          { name: 'Examples', score: 0 },
-          { name: 'Overall', score: 0 }
-        ] as EvaluationStep[]
+        steps: evaluationSteps
       };
     } catch (error) {
       console.error('Error evaluating response:', error);
@@ -120,7 +122,7 @@ export function useHRInterview(interviewId: string) {
         .update({ 
           audio_response_url: null,
           feedback: evaluation.feedback,
-          evaluation_steps: evaluation.steps
+          evaluation_steps: evaluation.steps as unknown as Json[]
         })
         .eq('id', currentQuestion.id);
 
