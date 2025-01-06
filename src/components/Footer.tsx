@@ -2,6 +2,17 @@ export function Footer() {
   return (
     <footer className="border-t bg-white/50 backdrop-blur-sm dark:bg-gray-800/50">
       <div className="container flex flex-col md:flex-row justify-between items-center px-4 py-6">
+        {/* Company Logo and Name Section */}
+        <div className="flex flex-col items-center mb-4 md:mb-0">
+          <img
+            src="logo.jpg"
+            alt="Company Logo"
+            className="w-16 h-16 rounded-full object-cover mb-2"
+          />
+          <span className="text-2xl font-bold text-gray-800 dark:text-gray-200">CodeVite</span>
+        </div>
+
+
         {/* About Section */}
         <div className="mb-4 md:mb-0">
           <h2 className="text-lg font-semibold">About CodeVite</h2>
@@ -42,6 +53,7 @@ export function Footer() {
           </a>
         </div>
       </div>
+
       <div className="container text-center py-4">
         <p className="text-sm text-muted-foreground">
           © 2024 CodeVite. All rights reserved.

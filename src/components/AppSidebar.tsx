@@ -19,11 +19,6 @@ const navigationItems = [
     icon: Home, 
     url: '/' 
   },
-  { 
-    title: 'Dashboard', 
-    icon: Grid, 
-    url: '/dashboard' 
-  },
   
   { 
     title: 'Community', 
@@ -104,21 +99,7 @@ export function AppSidebar() {
               <span>Need Help</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {user ? (
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} className="flex items-center space-x-2">
-                <LogIn className="text-gray-500 dark:text-gray-300" />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ) : (
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => navigate('/login')} className="flex items-center space-x-2">
-                <LogIn className="text-gray-500 dark:text-gray-300" />
-                <span>Login</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
+        
         </SidebarMenu>
       </div>
 
