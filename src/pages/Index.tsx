@@ -3,7 +3,6 @@ import { User, Users, UserCheck, Building, UserCog, Code, Star, Heart, ThumbsUp,
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
-// Sample data for feedbacks
 const feedbacks = [
   {
     name: "John Doe",
@@ -115,7 +114,7 @@ function PracticeModeCard({ title, description, icon: Icon, route, image }) {
 export default function Index() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentText, setCurrentText] = useState("");
-  const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0); // Track the current feedback index
+  const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0);
   const textArray = [
     "Master Every Interview, Land Your Dream Job!"
   ];
@@ -131,11 +130,10 @@ export default function Index() {
     return () => clearInterval(interval);
   }, []);
 
-  // Loop through feedbacks every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentFeedbackIndex((prevIndex) => (prevIndex + 3) % feedbacks.length); // Increment index by 3 and reset when it reaches end
-    }, 3000); // Adjust the time for feedback transition
+      setCurrentFeedbackIndex((prevIndex) => (prevIndex + 3) % feedbacks.length);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -147,9 +145,6 @@ export default function Index() {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#fdfcfb] to-[#e2d1c3] dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <main className="flex-1 container py-12">
-        {/* Feedback Section - Visible before "Get Started" is clicked */}
-        
-        {/* Main Content (Practice Modes) Section - Visible after "Get Started" is clicked */}
         {!showWelcome && (
           <div className="space-y-12">
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 animate-fade-in">
@@ -160,7 +155,6 @@ export default function Index() {
           </div>
         )}
 
-        {/* Welcome Section - Visible only before "Get Started" is clicked */}
         {showWelcome && (
           <div className="flex flex-col md:flex-row items-center justify-between h-full space-y-6 md:space-y-0">
             <div className="md:w-1/2 text-left space-y-6">
@@ -191,34 +185,32 @@ export default function Index() {
           </div>
         )}
 
-        {/* Stats Section */}
         {showWelcome && (
           <div className="mt-12 grid grid-cols-3 gap-8">
             <div className="text-center bg-transparent p-6 rounded-lg shadow-md">
               <div className="flex justify-center items-center space-x-4 mb-4">
-                <Users className="w-8 h-8 text-purple-600" /> {/* Icon for Trusted Users */}
+                <Users className="w-8 h-8 text-purple-600" />
                 <h3 className="text-xl font-semibold text-purple-600 font-sans">Trusted Users</h3>
               </div>
-              <p className="text-4xl text-gradient font-serif">1,240</p> {/* Font changed to serif */}
+              <p className="text-4xl text-gradient font-serif">1,240</p>
             </div>
             <div className="text-center bg-transparent p-6 rounded-lg shadow-md">
               <div className="flex justify-center items-center space-x-4 mb-4">
-                <BookOpen className="w-8 h-8 text-purple-600" /> {/* Icon for Available Materials */}
+                <BookOpen className="w-8 h-8 text-purple-600" />
                 <h3 className="text-xl font-semibold text-purple-600 font-sans">Available Materials</h3>
               </div>
-              <p className="text-4xl text-gradient font-serif">158</p> {/* Font changed to serif */}
+              <p className="text-4xl text-gradient font-serif">158</p>
             </div>
             <div className="text-center bg-transparent p-6 rounded-lg shadow-md">
               <div className="flex justify-center items-center space-x-4 mb-4">
-                <FileText className="w-8 h-8 text-purple-600" /> {/* Icon for Text Questions */}
+                <FileText className="w-8 h-8 text-purple-600" />
                 <h3 className="text-xl font-semibold text-purple-600 font-sans">Text Questions</h3>
               </div>
-              <p className="text-4xl text-gradient font-serif">120</p> {/* Font changed to serif */}
+              <p className="text-4xl text-gradient font-serif">120</p>
             </div>
           </div>
         )}
 
-        {/* Feedback Section */}
         {showWelcome && (
           <div className="mt-12 space-y-8">
             <div className="grid gap-6 md:grid-cols-3">
@@ -242,64 +234,58 @@ export default function Index() {
             </div>
           </div>
         )}
-
-        
-        
       </main>
       <Footer />
 
-<style>
-  {`
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 2px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-  `}
-</style>
-
-      <style jsx>{`
-        @keyframes floating {
-          0%, 100% {
-            transform: translateY(0);
+      <style>
+        {`
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
           }
-          50% {
-            transform: translateY(-10px);
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
           }
-        }
-
-        .animate-floating {
-          animation: floating 4s ease-in-out infinite;
-        }
-
-        @keyframes fadeIn {
-          0% {
-            opacity: 0;
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 2px;
           }
-          100% {
-            opacity: 1;
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
           }
-        }
 
-        .animate-fade-in {
-          animation: fadeIn 1s ease-in-out;
-        }
+          @keyframes floating {
+            0%, 100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-10px);
+            }
+          }
 
-        .text-gradient {
-          background: linear-gradient(to right, #ff7c7c, #fbbf24, #8b5cf6);
-          -webkit-background-clip: text;
-          color: transparent;
-        }
-      `}</style>
+          .animate-floating {
+            animation: floating 4s ease-in-out infinite;
+          }
+
+          @keyframes fadeIn {
+            0% {
+              opacity: 0;
+            }
+            100% {
+              opacity: 1;
+            }
+          }
+
+          .animate-fade-in {
+            animation: fadeIn 1s ease-in-out;
+          }
+
+          .text-gradient {
+            background: linear-gradient(to right, #ff7c7c, #fbbf24, #8b5cf6);
+            -webkit-background-clip: text;
+            color: transparent;
+          }
+        `}
+      </style>
     </div>
   );
 }
-

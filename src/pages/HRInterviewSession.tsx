@@ -5,8 +5,6 @@ import { AIInterviewerIntro } from '@/components/AIInterviewerIntro';
 import { InterviewQuestionCard } from '@/components/InterviewQuestionCard';
 import { QuestionTimer } from '@/components/QuestionTimer';
 import { useToast } from '@/components/ui/use-toast';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 
 const MAX_QUESTIONS = 5;
@@ -188,6 +186,7 @@ export default function HRInterviewSession() {
           ) : (
             questions[currentQuestionIndex] && (
               <InterviewQuestionCard
+                questions={questions}
                 currentQuestion={questions[currentQuestionIndex].question}
                 questionNumber={currentQuestionIndex + 1}
                 totalQuestions={MAX_QUESTIONS}
@@ -195,6 +194,7 @@ export default function HRInterviewSession() {
                 isRecording={isRecording}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
+                onSubmit={handleResponseSubmit}
                 onNextQuestion={async () => {
                   const isComplete = await handleResponseSubmit();
                   if (currentQuestionIndex < MAX_QUESTIONS - 1) {
