@@ -13,6 +13,14 @@ interface PracticeModeCardProps {
 export function PracticeModeCard({ title, description, icon: Icon, route }: PracticeModeCardProps) {
   const navigate = useNavigate();
 
+  const handleClick = () => {
+    if (title === "AI-Assisted DevOps") {
+      navigate("/devops-flow");
+    } else {
+      navigate(route);
+    }
+  };
+
   return (
     <Card className="relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl bg-white/80 backdrop-blur-sm border-white/20 dark:bg-gray-800/80">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 pointer-events-none" />
@@ -32,7 +40,7 @@ export function PracticeModeCard({ title, description, icon: Icon, route }: Prac
       <CardFooter>
         <Button 
           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
-          onClick={() => navigate(route)}
+          onClick={handleClick}
         >
           Start Practice
         </Button>

@@ -25,6 +25,7 @@ import DevOpsPractice from "./pages/DevOpsPractice";
 import HRInterview from "./pages/HRInterview";
 import HRInterviewSession from "./pages/HRInterviewSession";
 import Admin from "./pages/Admin";
+import DevOpsFlow from "./components/DevOpsFlow";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -121,6 +122,14 @@ const App = () => {
                       element={
                         <ProtectedRoute>
                           <DevOpsPractice />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/devops-flow" 
+                      element={
+                        <ProtectedRoute>
+                          <DevOpsFlow />
                         </ProtectedRoute>
                       } 
                     />

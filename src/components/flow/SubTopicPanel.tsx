@@ -16,6 +16,13 @@ const SubTopicPanel: React.FC<SubTopicPanelProps> = ({ node, onComplete, onClose
   const totalCount = node.data.subTopics?.length || 0;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
+  const handleSubTopicClick = (subTopic: string) => {
+    onComplete(node.id, subTopic);
+    if (node.id === '1' && subTopic === 'Introduction') {
+      navigate('/devops-practice');
+    }
+  };
+
   const panelStyle = {
     position: 'absolute' as const,
     left: `${node.position.x}px`,
@@ -25,11 +32,6 @@ const SubTopicPanel: React.FC<SubTopicPanelProps> = ({ node, onComplete, onClose
     backgroundColor: 'white',
     borderRadius: '8px',
     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-  };
-
-  const handleSubTopicClick = (subTopic: string) => {
-    onComplete(node.id, subTopic);
-    navigate('/learn');
   };
 
   return (
