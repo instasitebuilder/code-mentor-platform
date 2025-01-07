@@ -248,58 +248,41 @@ export default function Index() {
       </main>
       <Footer />
 
-<style>
-  {`
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 2px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-  `}
-</style>
-
-      <style jsx>{`
-        @keyframes floating {
-          0%, 100% {
-            transform: translateY(0);
+      <style>
+        {`
+          @keyframes floating {
+            0%, 100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-10px);
+            }
           }
-          50% {
-            transform: translateY(-10px);
+
+          .animate-floating {
+            animation: floating 4s ease-in-out infinite;
           }
-        }
 
-        .animate-floating {
-          animation: floating 4s ease-in-out infinite;
-        }
-
-        @keyframes fadeIn {
-          0% {
-            opacity: 0;
+          @keyframes fadeIn {
+            0% {
+              opacity: 0;
+            }
+            100% {
+              opacity: 1;
+            }
           }
-          100% {
-            opacity: 1;
+
+          .animate-fade-in {
+            animation: fadeIn 1s ease-in-out;
           }
-        }
 
-        .animate-fade-in {
-          animation: fadeIn 1s ease-in-out;
-        }
-
-        .text-gradient {
-          background: linear-gradient(to right, #ff7c7c, #fbbf24, #8b5cf6);
-          -webkit-background-clip: text;
-          color: transparent;
-        }
-      `}</style>
+          .text-gradient {
+            background: linear-gradient(to right, #ff7c7c, #fbbf24, #8b5cf6);
+            -webkit-background-clip: text;
+            color: transparent;
+          }
+        `}
+      </style>
     </div>
   );
 }
-

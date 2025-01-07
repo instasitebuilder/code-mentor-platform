@@ -8,12 +8,14 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
+  signOut: () => Promise<void>; // Added signOut to match the type
 };
 
 const AuthContext = createContext<AuthContextType>({ 
   user: null, 
   loading: true, 
-  logout: async () => {} 
+  logout: async () => {},
+  signOut: async () => {} // Added signOut implementation
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -90,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate, location]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, logout, signOut }}>
       {children}
     </AuthContext.Provider>
   );

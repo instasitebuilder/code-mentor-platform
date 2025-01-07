@@ -195,6 +195,8 @@ export default function HRInterviewSession() {
                 isRecording={isRecording}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
+                questions={questions} // Added missing prop
+                onSubmit={handleResponseSubmit} // Added missing prop
                 onNextQuestion={async () => {
                   const isComplete = await handleResponseSubmit();
                   if (currentQuestionIndex < MAX_QUESTIONS - 1) {
