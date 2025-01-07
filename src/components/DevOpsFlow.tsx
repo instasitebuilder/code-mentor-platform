@@ -1,6 +1,5 @@
 import React from 'react';
-import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge } from 'reactflow';
-
+import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import FlowNode from './flow/FlowNode';
 import SubTopicPanel from './flow/SubTopicPanel';

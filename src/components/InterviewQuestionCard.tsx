@@ -6,11 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface InterviewQuestionCardProps {
   questions: string[];
+  currentQuestion?: string;
+  questionNumber?: number;
+  totalQuestions?: number;
   transcription: string;
   isRecording: boolean;
   onStartRecording: () => void;
   onStopRecording: () => void;
   onSubmit: () => void;
+  onNextQuestion?: () => Promise<void>;
 }
 
 export function InterviewQuestionCard({
