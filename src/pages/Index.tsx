@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { User, Users, UserCheck, Building, UserCog, Code, Star, Heart, ThumbsUp, BookOpen, FileText } from "lucide-react";
+import { User, Users, UserCheck, Building, UserCog, Code, Star, Heart, ThumbsUp,BookOpen, FileText } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
+// Sample data for feedbacks
 const feedbacks = [
   {
     name: "John Doe",
@@ -114,7 +115,7 @@ function PracticeModeCard({ title, description, icon: Icon, route, image }) {
 export default function Index() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentText, setCurrentText] = useState("");
-  const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0);
+  const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0); // Track the current feedback index
   const textArray = [
     "Master Every Interview, Land Your Dream Job!"
   ];
@@ -130,10 +131,11 @@ export default function Index() {
     return () => clearInterval(interval);
   }, []);
 
+  // Loop through feedbacks every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentFeedbackIndex((prevIndex) => (prevIndex + 3) % feedbacks.length);
-    }, 3000);
+      setCurrentFeedbackIndex((prevIndex) => (prevIndex + 3) % feedbacks.length); // Increment index by 3 and reset when it reaches end
+    }, 3000); // Adjust the time for feedback transition
     return () => clearInterval(interval);
   }, []);
 
@@ -145,6 +147,9 @@ export default function Index() {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#fdfcfb] to-[#e2d1c3] dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <main className="flex-1 container py-12">
+        {/* Feedback Section - Visible before "Get Started" is clicked */}
+        
+        {/* Main Content (Practice Modes) Section - Visible after "Get Started" is clicked */}
         {!showWelcome && (
           <div className="space-y-12">
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 animate-fade-in">
@@ -155,17 +160,20 @@ export default function Index() {
           </div>
         )}
 
+        {/* Welcome Section - Visible only before "Get Started" is clicked */}
         {showWelcome && (
           <div className="flex flex-col md:flex-row items-center justify-between h-full space-y-6 md:space-y-0">
             <div className="md:w-1/2 text-left space-y-6">
-              <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200">
-                <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 text-transparent bg-clip-text">
-                  {currentText}
-                </span>
-              </h1>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla.
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200">
+              <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 text-transparent bg-clip-text">
+                {currentText}
+              </span>
+              
+            </h1>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. 
               </p>
+
               <button
                 onClick={handleGetStarted}
                 className="px-6 py-3 bg-purple-600 text-white rounded-lg shadow-lg hover:bg-purple-700 transition duration-300"
@@ -183,32 +191,34 @@ export default function Index() {
           </div>
         )}
 
+        {/* Stats Section */}
         {showWelcome && (
           <div className="mt-12 grid grid-cols-3 gap-8">
             <div className="text-center bg-transparent p-6 rounded-lg shadow-md">
               <div className="flex justify-center items-center space-x-4 mb-4">
-                <Users className="w-8 h-8 text-purple-600" />
+                <Users className="w-8 h-8 text-purple-600" /> {/* Icon for Trusted Users */}
                 <h3 className="text-xl font-semibold text-purple-600 font-sans">Trusted Users</h3>
               </div>
-              <p className="text-4xl text-gradient font-serif">1,240</p>
+              <p className="text-4xl text-gradient font-serif">1,240</p> {/* Font changed to serif */}
             </div>
             <div className="text-center bg-transparent p-6 rounded-lg shadow-md">
               <div className="flex justify-center items-center space-x-4 mb-4">
-                <BookOpen className="w-8 h-8 text-purple-600" />
+                <BookOpen className="w-8 h-8 text-purple-600" /> {/* Icon for Available Materials */}
                 <h3 className="text-xl font-semibold text-purple-600 font-sans">Available Materials</h3>
               </div>
-              <p className="text-4xl text-gradient font-serif">158</p>
+              <p className="text-4xl text-gradient font-serif">158</p> {/* Font changed to serif */}
             </div>
             <div className="text-center bg-transparent p-6 rounded-lg shadow-md">
               <div className="flex justify-center items-center space-x-4 mb-4">
-                <FileText className="w-8 h-8 text-purple-600" />
+                <FileText className="w-8 h-8 text-purple-600" /> {/* Icon for Text Questions */}
                 <h3 className="text-xl font-semibold text-purple-600 font-sans">Text Questions</h3>
               </div>
-              <p className="text-4xl text-gradient font-serif">120</p>
+              <p className="text-4xl text-gradient font-serif">120</p> {/* Font changed to serif */}
             </div>
           </div>
         )}
 
+        {/* Feedback Section */}
         {showWelcome && (
           <div className="mt-12 space-y-8">
             <div className="grid gap-6 md:grid-cols-3">
@@ -232,44 +242,64 @@ export default function Index() {
             </div>
           </div>
         )}
+
+        
+        
       </main>
       <Footer />
 
-      <style>
-        {`
-          @keyframes floating {
-            0%, 100% {
-              transform: translateY(0);
-            }
-            50% {
-              transform: translateY(-10px);
-            }
-          }
+<style>
+  {`
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 2px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  `}
+</style>
 
-          .animate-floating {
-            animation: floating 4s ease-in-out infinite;
+      <style jsx>{`
+        @keyframes floating {
+          0%, 100% {
+            transform: translateY(0);
           }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
 
-          @keyframes fadeIn {
-            0% {
-              opacity: 0;
-            }
-            100% {
-              opacity: 1;
-            }
-          }
+        .animate-floating {
+          animation: floating 4s ease-in-out infinite;
+        }
 
-          .animate-fade-in {
-            animation: fadeIn 1s ease-in-out;
+        @keyframes fadeIn {
+          0% {
+            opacity: 0;
           }
+          100% {
+            opacity: 1;
+          }
+        }
 
-          .text-gradient {
-            background: linear-gradient(to right, #ff7c7c, #fbbf24, #8b5cf6);
-            -webkit-background-clip: text;
-            color: transparent;
-          }
-        `}
-      </style>
+        .animate-fade-in {
+          animation: fadeIn 1s ease-in-out;
+        }
+
+        .text-gradient {
+          background: linear-gradient(to right, #ff7c7c, #fbbf24, #8b5cf6);
+          -webkit-background-clip: text;
+          color: transparent;
+        }
+      `}</style>
     </div>
   );
 }
+
