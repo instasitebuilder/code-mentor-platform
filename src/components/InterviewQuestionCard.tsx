@@ -5,38 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 interface InterviewQuestionCardProps {
-  questionNumber: number;
-  totalQuestions: number;
-  currentQuestion: string;
+  questions: string[];
   transcription: string;
   isRecording: boolean;
   onStartRecording: () => void;
   onStopRecording: () => void;
-  onNextQuestion: () => void;
+  onSubmit: () => void;
 }
 
 export function InterviewQuestionCard({
-  questionNumber,
-  totalQuestions,
-  currentQuestion,
+  questions,
   transcription,
   isRecording,
   onStartRecording,
   onStopRecording,
-  onNextQuestion,
+  onSubmit,
 }: InterviewQuestionCardProps) {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [hasReadQuestion, setHasReadQuestion] = useState(false);
   const [isPromptVisible, setIsPromptVisible] = useState(false);
   const [timer, setTimer] = useState(60);
   const [userResponse, setUserResponse] = useState<string[]>([]);
 
-  const currentQuestionText = currentQuestion;
-  const totalQuestionsCount = totalQuestions;
+  const currentQuestion = questions[currentQuestionIndex];
+  const totalQuestions = questions.length;
 
   useEffect(() => {
     const readQuestion = async () => {
-      if (!currentQuestionText || hasReadQuestion) return;
+      if (!currentQuestion || hasReadQuestion) return;
 
       try {
         const ELEVEN_LABS_API_KEY = import.meta.env.VITE_ELEVEN_LABS_API_KEY;
@@ -53,7 +50,7 @@ export function InterviewQuestionCard({
               "xi-api-key": ELEVEN_LABS_API_KEY,
             },
             body: JSON.stringify({
-              text: currentQuestionText,
+              text: currentQuestion,
               model_id: "eleven_multilingual_v2",
               voice_settings: {
                 stability: 0.5,
@@ -86,7 +83,7 @@ export function InterviewQuestionCard({
     if (!hasReadQuestion) {
       readQuestion();
     }
-  }, [currentQuestionText, hasReadQuestion]);
+  }, [currentQuestion, hasReadQuestion]);
 
   useEffect(() => {
     const timerInterval = setInterval(() => {
@@ -111,7 +108,7 @@ export function InterviewQuestionCard({
         .map((result) => result[0].transcript)
         .join(" ");
       const updatedResponses = [...userResponse];
-      updatedResponses[questionNumber - 1] = speechToText;
+      updatedResponses[currentQuestionIndex] = speechToText;
       setUserResponse(updatedResponses);
     };
 
@@ -130,39 +127,39 @@ export function InterviewQuestionCard({
     return () => {
       recognition.abort();
     };
-  }, [isPromptVisible, questionNumber, userResponse, onStopRecording]);
+  }, [isPromptVisible, currentQuestionIndex, userResponse, onStopRecording]);
 
   const handleNextQuestion = () => {
-    if (questionNumber < totalQuestionsCount) {
-      onNextQuestion();
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       setHasReadQuestion(false);
       setIsPromptVisible(false);
       setTimer(60);
     }
   };
 
-  const isLastQuestion = questionNumber === totalQuestionsCount;
+  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
   return (
     <div className="flex flex-col items-center space-y-8">
       <Card className="p-6 space-y-4 bg-gradient-to-r from-gray-800 to-gray-900 border-purple-500 w-full max-w-3xl">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-            Question {questionNumber} of {totalQuestionsCount}
+            Question {currentQuestionIndex + 1} of {totalQuestions}
           </h2>
           <Progress
-            value={(questionNumber / totalQuestionsCount) * 100}
+            value={((currentQuestionIndex + 1) / totalQuestions) * 100}
             className="w-full bg-gray-700"
           />
         </div>
 
-        <p className="text-lg text-white">{currentQuestionText}</p>
+        <p className="text-lg text-white">{currentQuestion}</p>
 
         {isPromptVisible && (
           <>
             <label className="text-md text-white">Your Response:</label>
             <Textarea
-              value={userResponse[questionNumber - 1] || ""}
+              value={userResponse[currentQuestionIndex] || ""}
               readOnly
               className="w-full mt-2 bg-gray-700 text-white border-purple-500 rounded-lg"
               rows={4}
@@ -171,13 +168,22 @@ export function InterviewQuestionCard({
         )}
 
         <div className="flex justify-end">
-          <Button
-            onClick={handleNextQuestion}
-            disabled={!userResponse[questionNumber - 1]}
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
-          >
-            {isLastQuestion ? "Submit" : "Next Question"}
-          </Button>
+          {isLastQuestion ? (
+            <Button
+              onClick={onSubmit}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
+            >
+              Submit
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNextQuestion}
+              disabled={!userResponse[currentQuestionIndex]}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
+            >
+              Next Question
+            </Button>
+          )}
         </div>
       </Card>
     </div>
