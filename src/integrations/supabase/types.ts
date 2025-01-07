@@ -470,6 +470,111 @@ export type Database = {
           },
         ]
       }
+      technical_questions: {
+        Row: {
+          created_at: string
+          difficulty: string
+          expected_answer: string | null
+          id: string
+          question: string
+          topic_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty: string
+          expected_answer?: string | null
+          id?: string
+          question: string
+          topic_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string
+          expected_answer?: string | null
+          id?: string
+          question?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technical_questions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "technical_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technical_responses: {
+        Row: {
+          created_at: string
+          feedback: string | null
+          id: string
+          question_id: string
+          response: string
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          question_id: string
+          response: string
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          question_id?: string
+          response?: string
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technical_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "technical_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technical_topics: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          parent_id: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          parent_id?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          parent_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technical_topics_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "technical_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_notifications: {
         Row: {
           created_at: string
