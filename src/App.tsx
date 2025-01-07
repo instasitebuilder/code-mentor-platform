@@ -26,6 +26,7 @@ import HRInterview from "./pages/HRInterview";
 import HRInterviewSession from "./pages/HRInterviewSession";
 import Admin from "./pages/Admin";
 import DevOpsFlow from "./components/DevOpsFlow";
+import TechnicalRound from "./pages/TechnicalRound";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -155,6 +156,14 @@ const App = () => {
                         <AdminRoute>
                           <Admin />
                         </AdminRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/technical-round" 
+                      element={
+                        <ProtectedRoute>
+                          <TechnicalRound />
+                        </ProtectedRoute>
                       } 
                     />
                   </Routes>
