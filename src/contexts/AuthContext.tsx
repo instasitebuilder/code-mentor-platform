@@ -8,14 +8,14 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
-  signOut: () => Promise<void>; // Added signOut to match the type
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({ 
   user: null, 
   loading: true, 
   logout: async () => {},
-  signOut: async () => {} // Added signOut implementation
+  signOut: async () => {}
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -59,6 +59,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast({
         title: "Error",
         description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Implement signOut function to match the type
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      navigate('/');
+    } catch (error: any) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
         variant: "destructive",
       });
     }
