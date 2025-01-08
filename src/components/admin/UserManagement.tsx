@@ -15,9 +15,9 @@ import { Search, Mail } from 'lucide-react';
 
 interface UserData {
   user_id: string;
-  name: string;
-  email: string;
-  college: string;
+  name: string | null;
+  email: string | null;
+  college: string | null;
   total_submissions: number;
   total_practice_sessions: number;
   total_interviews: number;
@@ -40,7 +40,19 @@ export function UserManagement() {
         .select('*');
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Ensure we handle null values and type the data correctly
+      const typedData = (data || []).map(user => ({
+        user_id: user.user_id,
+        name: user.name || 'N/A',
+        email: user.email || 'N/A',
+        college: user.college || 'N/A',
+        total_submissions: Number(user.total_submissions) || 0,
+        total_practice_sessions: Number(user.total_practice_sessions) || 0,
+        total_interviews: Number(user.total_interviews) || 0
+      }));
+      
+      setUsers(typedData);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -102,9 +114,9 @@ export function UserManagement() {
             ) : (
               filteredUsers.map((user) => (
                 <TableRow key={user.user_id}>
-                  <TableCell>{user.name || 'N/A'}</TableCell>
-                  <TableCell>{user.email || 'N/A'}</TableCell>
-                  <TableCell>{user.college || 'N/A'}</TableCell>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.college}</TableCell>
                   <TableCell>{user.total_submissions}</TableCell>
                   <TableCell>{user.total_practice_sessions}</TableCell>
                   <TableCell>{user.total_interviews}</TableCell>
@@ -114,7 +126,6 @@ export function UserManagement() {
                       size="sm"
                       className="flex items-center gap-2"
                       onClick={() => {
-                        // Individual message functionality can be added here
                         toast({
                           title: "Coming Soon",
                           description: "Individual messaging will be available soon",
