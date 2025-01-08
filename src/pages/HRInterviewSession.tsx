@@ -1,25 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useHRInterview } from '@/hooks/useHRInterview';
 import { AIInterviewerIntro } from '@/components/AIInterviewerIntro';
+import { InterviewQuestionCard } from '@/components/InterviewQuestionCard';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { VideoPreview } from '@/components/interview/VideoPreview';
 import { InterviewHeader } from '@/components/interview/InterviewHeader';
-import { QuestionFlow } from '@/components/interview/QuestionFlow';
+import { RecordingControls } from '@/components/interview/RecordingControls';
+import { MessageCircle, User, Mic, MicOff } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { User } from 'lucide-react';
 
+const MAX_QUESTIONS = 5;
 const MAX_TIME_SECONDS = 600; // 10 minutes
 
 export default function HRInterviewSession() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState('');
   const [introCompleted, setIntroCompleted] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   
   const {
     responses,
@@ -27,6 +32,7 @@ export default function HRInterviewSession() {
     isLoading,
     interviewDetails,
     handleResponseSubmit,
+    currentQuestion,
   } = useHRInterview(id!);
 
   useEffect(() => {
@@ -38,7 +44,7 @@ export default function HRInterviewSession() {
         const firstQuestion = data.questions[0];
         const remainingQuestions = data.questions.slice(1);
         const shuffledQuestions = remainingQuestions.sort(() => Math.random() - 0.5);
-        const selectedQuestions = [firstQuestion, ...shuffledQuestions.slice(0, 4)];
+        const selectedQuestions = [firstQuestion, ...shuffledQuestions.slice(0, MAX_QUESTIONS - 1)];
         
         setQuestions(selectedQuestions);
       } catch (error) {
@@ -83,21 +89,58 @@ export default function HRInterviewSession() {
     }
   };
 
-  const handleSubmitResponse = async (response: string) => {
-    if (questions[currentQuestionIndex]) {
-      setResponses(prev => ({
-        ...prev,
-        [questions[currentQuestionIndex].id]: response
-      }));
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      
+      const audioChunks: BlobPart[] = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        
+        if (currentQuestion) {
+          const formData = new FormData();
+          formData.append('audio', audioBlob);
+          try {
+            const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              },
+            });
+            const data = await response.json();
+            setTranscription(data.text);
+            
+            if (currentQuestion) {
+              setResponses(prev => ({
+                ...prev,
+                [currentQuestion.id]: data.text
+              }));
+            }
+          } catch (error) {
+            console.error('Error transcribing audio:', error);
+          }
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error starting recording:", err);
     }
   };
 
-  const handleQuestionComplete = async () => {
-    const isComplete = await handleResponseSubmit();
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else if (isComplete) {
-      navigate('/dashboard');
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
@@ -113,6 +156,7 @@ export default function HRInterviewSession() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8">
       <div className="container mx-auto max-w-6xl">
         <InterviewHeader onTimeUpdate={setTimeSpent} />
+
         <VideoPreview className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-primary" />
 
         <div className="max-w-4xl mx-auto space-y-8">
@@ -126,12 +170,39 @@ export default function HRInterviewSession() {
             </Card>
           ) : (
             questions[currentQuestionIndex] && (
-              <QuestionFlow
-                question={questions[currentQuestionIndex].question}
-                onSubmitResponse={handleSubmitResponse}
-                onQuestionComplete={handleQuestionComplete}
-                isLastQuestion={currentQuestionIndex === questions.length - 1}
-              />
+              <Card className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <MessageCircle className="w-6 h-6 text-primary" />
+                  <h2 className="text-xl font-semibold">Interview Question</h2>
+                </div>
+                
+                <InterviewQuestionCard
+                  questions={questions}
+                  currentQuestion={questions[currentQuestionIndex].question}
+                  questionNumber={currentQuestionIndex + 1}
+                  totalQuestions={MAX_QUESTIONS}
+                  transcription={transcription}
+                  isRecording={isRecording}
+                  onStartRecording={startRecording}
+                  onStopRecording={stopRecording}
+                  onSubmit={handleResponseSubmit}
+                  onNextQuestion={async () => {
+                    const isComplete = await handleResponseSubmit();
+                    if (currentQuestionIndex < MAX_QUESTIONS - 1) {
+                      setCurrentQuestionIndex(prev => prev + 1);
+                      setTranscription('');
+                    } else if (isComplete) {
+                      navigate('/dashboard');
+                    }
+                  }}
+                />
+                
+                <RecordingControls
+                  isRecording={isRecording}
+                  onStartRecording={startRecording}
+                  onStopRecording={stopRecording}
+                />
+              </Card>
             )
           )}
         </div>
