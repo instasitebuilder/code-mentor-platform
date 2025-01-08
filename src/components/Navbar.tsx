@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { FiSun, FiMoon, FiUser, FiBell } from "react-icons/fi";
+import { FiSun, FiMoon, FiUser, FiBell, FiChevronDown } from "react-icons/fi";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -75,7 +75,6 @@ export function Navbar() {
 
   const fetchNotifications = async () => {
     try {
-      // Replace this with your API call to fetch notifications
       const fetchedNotifications = [
         { message: "You have a new message", time: "2025-01-03 14:30:00" },
         { message: "Your profile was updated", time: "2025-01-03 13:45:00" },
@@ -129,7 +128,7 @@ export function Navbar() {
             onClick={() => navigate("/")}
             className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text"
           >
-            CodeVite
+            Sakshatkar
           </Button>
         </div>
 
@@ -182,6 +181,7 @@ export function Navbar() {
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <FiUser className="w-5 h-5" />
                   <span>{profile?.name || user.email}</span>
+                  <FiChevronDown className="w-4 h-4" /> {/* Dropdown icon */}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
