@@ -3,9 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useHRInterview } from '@/hooks/useHRInterview';
 import { AIInterviewerIntro } from '@/components/AIInterviewerIntro';
 import { InterviewQuestionCard } from '@/components/InterviewQuestionCard';
-import { QuestionTimer } from '@/components/QuestionTimer';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { VideoPreview } from '@/components/interview/VideoPreview';
+import { InterviewHeader } from '@/components/interview/InterviewHeader';
+import { RecordingControls } from '@/components/interview/RecordingControls';
+import { MessageCircle, User } from 'lucide-react';
 
 const MAX_QUESTIONS = 5;
 const MAX_TIME_SECONDS = 600; // 10 minutes
@@ -21,7 +24,6 @@ export default function HRInterviewSession() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   
   const {
     responses,
@@ -38,7 +40,6 @@ export default function HRInterviewSession() {
         const response = await fetch('/hr-interview-questions.json');
         const data = await response.json();
         
-        // Get first question and 4 random questions
         const firstQuestion = data.questions[0];
         const remainingQuestions = data.questions.slice(1);
         const shuffledQuestions = remainingQuestions.sort(() => Math.random() - 0.5);
@@ -59,20 +60,6 @@ export default function HRInterviewSession() {
       fetchQuestions();
     }
   }, [interviewDetails, toast]);
-
-  useEffect(() => {
-    const startVideo = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-      }
-    };
-    startVideo();
-  }, []);
 
   useEffect(() => {
     if (timeSpent >= MAX_TIME_SECONDS) {
@@ -165,46 +152,56 @@ export default function HRInterviewSession() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-8">
-      <div className="container mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">HR Interview Session</h1>
-          <QuestionTimer onTimeUpdate={setTimeSpent} />
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8">
+      <div className="container mx-auto max-w-6xl">
+        <InterviewHeader onTimeUpdate={setTimeSpent} />
 
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-purple-500"
-        />
+        <VideoPreview className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-primary" />
 
         <div className="max-w-4xl mx-auto space-y-8">
           {!introCompleted ? (
-            <AIInterviewerIntro onIntroComplete={() => setIntroCompleted(true)} />
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 animate-fade-in">
+              <div className="flex items-center space-x-2 mb-4">
+                <User className="w-6 h-6 text-primary" />
+                <h2 className="text-xl font-semibold">Welcome to Your Interview</h2>
+              </div>
+              <AIInterviewerIntro onIntroComplete={() => setIntroCompleted(true)} />
+            </div>
           ) : (
             questions[currentQuestionIndex] && (
-              <InterviewQuestionCard
-                questions={questions}
-                currentQuestion={questions[currentQuestionIndex].question}
-                questionNumber={currentQuestionIndex + 1}
-                totalQuestions={MAX_QUESTIONS}
-                transcription={transcription}
-                isRecording={isRecording}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
-                onSubmit={handleResponseSubmit}
-                onNextQuestion={async () => {
-                  const isComplete = await handleResponseSubmit();
-                  if (currentQuestionIndex < MAX_QUESTIONS - 1) {
-                    setCurrentQuestionIndex(prev => prev + 1);
-                    setTranscription('');
-                  } else if (isComplete) {
-                    navigate('/dashboard');
-                  }
-                }}
-              />
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <MessageCircle className="w-6 h-6 text-primary" />
+                  <h2 className="text-xl font-semibold">Interview Question</h2>
+                </div>
+                
+                <InterviewQuestionCard
+                  questions={questions}
+                  currentQuestion={questions[currentQuestionIndex].question}
+                  questionNumber={currentQuestionIndex + 1}
+                  totalQuestions={MAX_QUESTIONS}
+                  transcription={transcription}
+                  isRecording={isRecording}
+                  onStartRecording={startRecording}
+                  onStopRecording={stopRecording}
+                  onSubmit={handleResponseSubmit}
+                  onNextQuestion={async () => {
+                    const isComplete = await handleResponseSubmit();
+                    if (currentQuestionIndex < MAX_QUESTIONS - 1) {
+                      setCurrentQuestionIndex(prev => prev + 1);
+                      setTranscription('');
+                    } else if (isComplete) {
+                      navigate('/dashboard');
+                    }
+                  }}
+                />
+                
+                <RecordingControls
+                  isRecording={isRecording}
+                  onStartRecording={startRecording}
+                  onStopRecording={stopRecording}
+                />
+              </div>
             )
           )}
         </div>
