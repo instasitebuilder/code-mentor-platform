@@ -159,6 +159,12 @@ const App = () => {
                       } 
                     />
                     <Route 
+                      path="/admin-panel" 
+                      element={
+                        <Navigate to="/admin" replace />
+                      } 
+                    />
+                    <Route 
                       path="/admin-pannel" 
                       element={
                         <Navigate to="/admin" replace />
