@@ -1,195 +1,79 @@
-import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Mic, MicOff } from 'lucide-react';
 
 interface InterviewQuestionCardProps {
-  questions: string[];
-  currentQuestion?: string;
-  questionNumber?: number;
-  totalQuestions?: number;
+  questions: any[];
+  currentQuestion: string;
+  questionNumber: number;
+  totalQuestions: number;
   transcription: string;
   isRecording: boolean;
   onStartRecording: () => void;
   onStopRecording: () => void;
-  onSubmit: () => void;
-  onNextQuestion?: () => Promise<void>;
+  onSubmit: () => Promise<boolean>;
+  onNextQuestion: () => void;
 }
 
 export function InterviewQuestionCard({
-  questions,
+  currentQuestion,
+  questionNumber,
+  totalQuestions,
   transcription,
   isRecording,
   onStartRecording,
   onStopRecording,
-  onSubmit,
+  onNextQuestion,
 }: InterviewQuestionCardProps) {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [hasReadQuestion, setHasReadQuestion] = useState(false);
-  const [isPromptVisible, setIsPromptVisible] = useState(false);
-  const [timer, setTimer] = useState(60);
-  const [userResponse, setUserResponse] = useState<string[]>([]);
-
-  const currentQuestion = questions[currentQuestionIndex];
-  const totalQuestions = questions.length;
-
-  useEffect(() => {
-    const readQuestion = async () => {
-      if (!currentQuestion || hasReadQuestion) return;
-
-      try {
-        const ELEVEN_LABS_API_KEY = import.meta.env.VITE_ELEVEN_LABS_API_KEY;
-        if (!ELEVEN_LABS_API_KEY) {
-          throw new Error("Eleven Labs API key is not configured");
-        }
-
-        const response = await fetch(
-          "https://api.elevenlabs.io/v1/text-to-speech/9BWtsMINqrJLrRacOk9x/stream",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "xi-api-key": ELEVEN_LABS_API_KEY,
-            },
-            body: JSON.stringify({
-              text: currentQuestion,
-              model_id: "eleven_multilingual_v2",
-              voice_settings: {
-                stability: 0.5,
-                similarity_boost: 0.75,
-              },
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to generate speech");
-        }
-
-        const blob = await response.blob();
-        const audio = new Audio(URL.createObjectURL(blob));
-
-        setIsSpeaking(true);
-        audio.onended = () => {
-          setIsSpeaking(false);
-          setHasReadQuestion(true);
-          setIsPromptVisible(true);
-        };
-
-        await audio.play();
-      } catch (error) {
-        console.error("Error reading question:", error);
-      }
-    };
-
-    if (!hasReadQuestion) {
-      readQuestion();
-    }
-  }, [currentQuestion, hasReadQuestion]);
-
-  useEffect(() => {
-    const timerInterval = setInterval(() => {
-      if (timer > 0 && isPromptVisible) {
-        setTimer((prevTimer) => prevTimer - 1);
-      } else if (timer === 0) {
-        clearInterval(timerInterval);
-      }
-    }, 1000);
-
-    return () => clearInterval(timerInterval);
-  }, [timer, isPromptVisible]);
-
-  useEffect(() => {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = (event: any) => {
-      const speechToText = Array.from(event.results)
-        .map((result) => result[0].transcript)
-        .join(" ");
-      const updatedResponses = [...userResponse];
-      updatedResponses[currentQuestionIndex] = speechToText;
-      setUserResponse(updatedResponses);
-    };
-
-    recognition.onend = () => {
-      onStopRecording();
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error: ", event);
-    };
-
-    if (isPromptVisible) {
-      recognition.start();
-    }
-
-    return () => {
-      recognition.abort();
-    };
-  }, [isPromptVisible, currentQuestionIndex, userResponse, onStopRecording]);
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-      setHasReadQuestion(false);
-      setIsPromptVisible(false);
-      setTimer(60);
-    }
-  };
-
-  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
+  const progress = (questionNumber / totalQuestions) * 100;
 
   return (
-    <div className="flex flex-col items-center space-y-8">
-      <Card className="p-6 space-y-4 bg-gradient-to-r from-gray-800 to-gray-900 border-purple-500 w-full max-w-3xl">
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-            Question {currentQuestionIndex + 1} of {totalQuestions}
-          </h2>
-          <Progress
-            value={((currentQuestionIndex + 1) / totalQuestions) * 100}
-            className="w-full bg-gray-700"
-          />
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">
+            Question {questionNumber} of {totalQuestions}
+          </h3>
+          <Progress value={progress} className="w-32" />
         </div>
-
-        <p className="text-lg text-white">{currentQuestion}</p>
-
-        {isPromptVisible && (
-          <>
-            <label className="text-md text-white">Your Response:</label>
-            <Textarea
-              value={userResponse[currentQuestionIndex] || ""}
-              readOnly
-              className="w-full mt-2 bg-gray-700 text-white border-purple-500 rounded-lg"
-              rows={4}
-            />
-          </>
+      </CardHeader>
+      <CardContent>
+        <p className="text-lg mb-6">{currentQuestion}</p>
+        {transcription && (
+          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <p className="font-medium mb-2">Your Response:</p>
+            <p>{transcription}</p>
+          </div>
         )}
-
-        <div className="flex justify-end">
-          {isLastQuestion ? (
-            <Button
-              onClick={onSubmit}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all duration-300"
-            >
-              Submit
-            </Button>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button
+          variant={isRecording ? "destructive" : "default"}
+          onClick={isRecording ? onStopRecording : onStartRecording}
+          className="flex items-center gap-2"
+        >
+          {isRecording ? (
+            <>
+              <MicOff className="w-4 h-4" />
+              Stop Recording
+            </>
           ) : (
-            <Button
-              onClick={handleNextQuestion}
-              disabled={!userResponse[currentQuestionIndex]}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
-            >
-              Next Question
-            </Button>
+            <>
+              <Mic className="w-4 h-4" />
+              Start Recording
+            </>
           )}
-        </div>
-      </Card>
-    </div>
+        </Button>
+        <Button
+          onClick={onNextQuestion}
+          disabled={!transcription}
+          variant="outline"
+        >
+          Next Question
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { VideoPreview } from '@/components/interview/VideoPreview';
 import { InterviewHeader } from '@/components/interview/InterviewHeader';
 import { RecordingControls } from '@/components/interview/RecordingControls';
-import { MessageCircle, User } from 'lucide-react';
+import { MessageCircle, User, Mic, MicOff } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 const MAX_QUESTIONS = 5;
 const MAX_TIME_SECONDS = 600; // 10 minutes
@@ -160,16 +161,16 @@ export default function HRInterviewSession() {
 
         <div className="max-w-4xl mx-auto space-y-8">
           {!introCompleted ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 animate-fade-in">
+            <Card className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 animate-fade-in">
               <div className="flex items-center space-x-2 mb-4">
                 <User className="w-6 h-6 text-primary" />
                 <h2 className="text-xl font-semibold">Welcome to Your Interview</h2>
               </div>
               <AIInterviewerIntro onIntroComplete={() => setIntroCompleted(true)} />
-            </div>
+            </Card>
           ) : (
             questions[currentQuestionIndex] && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <Card className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="flex items-center space-x-2 mb-4">
                   <MessageCircle className="w-6 h-6 text-primary" />
                   <h2 className="text-xl font-semibold">Interview Question</h2>
@@ -201,7 +202,7 @@ export default function HRInterviewSession() {
                   onStartRecording={startRecording}
                   onStopRecording={stopRecording}
                 />
-              </div>
+              </Card>
             )
           )}
         </div>
