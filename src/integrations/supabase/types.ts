@@ -638,9 +638,26 @@ export type Database = {
         }
         Relationships: []
       }
+      user_statistics: {
+        Row: {
+          college: string | null
+          email: string | null
+          name: string | null
+          total_interviews: number | null
+          total_practice_sessions: number | null
+          total_submissions: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
