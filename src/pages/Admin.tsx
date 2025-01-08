@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,12 +6,16 @@ import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Users, FileText } from 'lucide-react';
+import { UserManagement } from '@/components/admin/UserManagement';
+import { NotificationCenter } from '@/components/admin/NotificationCenter';
+import { Statistics } from '@/components/admin/Statistics';
+import { Bell, Users, BarChart } from 'lucide-react';
 
 export default function Admin() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -20,97 +24,73 @@ export default function Admin() {
         return;
       }
 
-      const { data: { user: { email } } } = await supabase.auth.getUser();
-      
-      if (email !== 'raushan22882917@gmail.com') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access this page",
-          variant: "destructive"
-        });
+      try {
+        const { data: adminCheck } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!adminCheck) {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to access this page",
+            variant: "destructive"
+          });
+          navigate('/');
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Error checking admin access:', error);
         navigate('/');
       }
     };
 
     checkAdminAccess();
-  }, [user, navigate]);
+  }, [user, navigate, toast]);
 
-  const createNotification = async (title: string, message: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .insert({
-          title,
-          message,
-          created_by: user?.id,
-          is_admin_notification: true
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Notification created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating notification:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create notification",
-        variant: "destructive"
-      });
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        </div>
 
-        <Tabs defaultValue="notifications" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="w-4 h-4" />
-              Notifications
-            </TabsTrigger>
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="interviews" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Interviews
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger value="statistics" className="flex items-center gap-2">
+              <BarChart className="w-4 h-4" />
+              Statistics
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="notifications" className="space-y-4">
-            <div className="grid gap-4">
-              <Button
-                onClick={() => createNotification(
-                  "System Maintenance",
-                  "The system will undergo maintenance tonight at 10 PM UTC"
-                )}
-              >
-                Send System Maintenance Alert
-              </Button>
-              <Button
-                onClick={() => createNotification(
-                  "New Feature Available",
-                  "Check out our new HR Interview simulation feature!"
-                )}
-              >
-                Announce New Feature
-              </Button>
-            </div>
-          </TabsContent>
-
           <TabsContent value="users">
-            <p>User management coming soon...</p>
+            <UserManagement />
           </TabsContent>
 
-          <TabsContent value="interviews">
-            <p>Interview management coming soon...</p>
+          <TabsContent value="notifications">
+            <NotificationCenter />
+          </TabsContent>
+
+          <TabsContent value="statistics">
+            <Statistics />
           </TabsContent>
         </Tabs>
       </div>
