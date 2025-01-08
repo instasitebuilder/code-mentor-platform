@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { FiInfo } from "react-icons/fi"; // Icon for explanation
 import { FaBook } from "react-icons/fa"; // Icon for articles
 import ReactMarkdown from "react-markdown"; // Import react-markdown
 
@@ -119,43 +113,77 @@ export default function DevOpsPractice() {
 
       {/* AI Explanation Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg shadow-lg p-6">
-          <DialogHeader className="flex items-center space-x-2">
-            <FiInfo className="text-purple-500" />
-            <DialogTitle className="text-xl font-semibold">Understanding: {selectedWord}</DialogTitle>
-          </DialogHeader>
+  <DialogContent className="max-w-2xl bg-gradient-to-br from-purple-100 via-indigo-100 to-blue-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl shadow-xl p-8 border-4 border-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105">
+    
+    {/* Dialog Header */}
+    <DialogHeader className="flex flex-col items-center space-y-6">
+      {/* Title Section */}
+      <div className="flex flex-col space-y-2 items-center">
+        
+        {/* AI Logo and Selected Word */}
+        <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 p-3 rounded-full shadow-lg transform transition-transform duration-300 hover:scale-105 flex items-center space-x-2">
+          {/* AI Logo */}
+          <img
+            src="ai.gif" // Replace with your AI logo path
+            alt="AI Logo"
+            className="w-16 h-16 object-cover rounded-full"
+          />
+          
+          {/* Selected Word */}
+          <span className="text-white text-lg font-normal">{selectedWord}</span>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center p-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {aiExplanation && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">Explanation</h3>
-                  <div
-                    className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-white p-4 rounded-lg max-h-80 overflow-auto"
-                    style={{ height: "300px" }}
-                  >
-                    {/* Check if the explanation is an array of objects */}
-                    {Array.isArray(aiExplanation.explanation) ? (
-                      aiExplanation.explanation.map((item, index) => (
-                        <div key={index}>
-                          <h4 className="font-semibold">{item.section}</h4>
-                          <p>{item.text}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <ReactMarkdown>{aiExplanation.explanation}</ReactMarkdown>
-                    )}
+        </div>
+
+        {/* Title Text */}
+        <DialogTitle className="text-3xl font-semibold text-gray-900 dark:text-white transition-all duration-300 ease-in-out hover:text-purple-500">
+          {/* Optional Title or Text */}
+        </DialogTitle>
+      </div>
+
+      {/* Horizontal Line Below Header */}
+      <div className="w-full border-t-2 border-gray-300 dark:border-gray-700 my-4"></div>
+    </DialogHeader>
+
+    {/* Loading State */}
+    {isLoading ? (
+      <div className="flex items-center justify-center p-8 space-x-2">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600"></div>
+        <span className="text-xl text-gray-600 dark:text-gray-400">Loading...</span>
+      </div>
+    ) : (
+      <div className="space-y-6 mt-8">
+        {/* Explanation Section */}
+        {aiExplanation && (
+          <div className="space-y-6">
+            <h3 className="font-semibold text-xl text-gray-900 dark:text-white">
+              Explanation
+            </h3>
+            <div
+              className="bg-gradient-to-br from-purple-500 via-pink-600 to-red-500 text-white p-8 rounded-xl shadow-xl overflow-auto transition-all duration-500 ease-in-out"
+              style={{ height: "350px" }}
+            >
+              {/* Check if the explanation is an array of objects */}
+              {Array.isArray(aiExplanation.explanation) ? (
+                aiExplanation.explanation.map((item, index) => (
+                  <div key={index} className="mb-6">
+                    <h4 className="font-semibold text-xl">{item.section}</h4>
+                    <p className="text-md">{item.text}</p>
                   </div>
-                </div>
+                ))
+              ) : (
+                <ReactMarkdown className="text-md leading-relaxed">
+                  {aiExplanation.explanation}
+                </ReactMarkdown>
               )}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        )}
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
+
+
     </div>
   );
 }
