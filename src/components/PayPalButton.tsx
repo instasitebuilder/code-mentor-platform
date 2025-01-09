@@ -25,13 +25,17 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
           end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       toast({
         title: "Subscription Successful",
         description: `You are now subscribed to the ${planType} plan!`,
       });
     } catch (error: any) {
+      console.error('Subscription error:', error);
       toast({
         title: "Error",
         description: "Failed to process subscription. Please try again.",
@@ -50,18 +54,45 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
             return_url: window.location.href,
             cancel_url: window.location.href
           }
+        }).catch(err => {
+          console.error('PayPal subscription creation error:', err);
+          toast({
+            title: "Error",
+            description: "Failed to create subscription. Please try again.",
+            variant: "destructive",
+          });
+          throw err;
         });
       }}
       onApprove={async (data, actions) => {
-        if (data.subscriptionID) {
-          await handleSubscription(data.subscriptionID);
+        try {
+          if (data.subscriptionID) {
+            await handleSubscription(data.subscriptionID);
+          } else {
+            throw new Error('No subscription ID received');
+          }
+        } catch (err) {
+          console.error('PayPal approval error:', err);
+          toast({
+            title: "Error",
+            description: "Failed to process approval. Please try again.",
+            variant: "destructive",
+          });
         }
       }}
-      onError={() => {
+      onError={(err) => {
+        console.error('PayPal error:', err);
         toast({
           title: "Error",
           description: "PayPal transaction failed. Please try again.",
           variant: "destructive",
+        });
+      }}
+      onCancel={() => {
+        toast({
+          title: "Cancelled",
+          description: "You've cancelled the subscription process.",
+          variant: "default",
         });
       }}
       style={{
