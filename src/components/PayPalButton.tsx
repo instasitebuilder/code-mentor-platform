@@ -13,14 +13,14 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const handleSubscription = async (paymentId: string) => {
+  const handleSubscription = async (subscriptionId: string) => {
     try {
       const { error } = await supabase
         .from('user_subscriptions')
         .upsert({
           user_id: user?.id,
           subscription_type: planType,
-          payment_id: paymentId,
+          payment_id: subscriptionId,
           payment_provider: 'paypal',
           end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
         });
@@ -42,23 +42,17 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
 
   return (
     <PayPalButtons
-      createOrder={(data, actions) => {
-        return actions.order.create({
-          intent: "CAPTURE",
-          purchase_units: [
-            {
-              amount: {
-                currency_code: "USD",
-                value: amount,
-              },
-            },
-          ],
+      createSubscription={(data, actions) => {
+        return actions.subscription.create({
+          plan_id: planType === 'pro' ? 'P-PRO_PLAN_ID' : 'P-ENTERPRISE_PLAN_ID', // Replace with your actual PayPal plan IDs
+          application_context: {
+            shipping_preference: 'NO_SHIPPING'
+          }
         });
       }}
       onApprove={async (data, actions) => {
-        if (actions.order) {
-          const order = await actions.order.capture();
-          await handleSubscription(order.id);
+        if (data.subscriptionID) {
+          await handleSubscription(data.subscriptionID);
         }
       }}
       onError={() => {
@@ -67,6 +61,12 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
           description: "PayPal transaction failed. Please try again.",
           variant: "destructive",
         });
+      }}
+      style={{
+        layout: 'vertical',
+        color: 'blue',
+        shape: 'rect',
+        label: 'subscribe'
       }}
     />
   );

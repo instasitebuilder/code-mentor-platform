@@ -34,11 +34,10 @@ export function Pricing() {
       <Navbar />
       <PayPalScriptProvider options={{ 
         clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "",
-        currency: "USD",
-        intent: "capture"
+        vault: true,
+        intent: "subscription"
       }}>
         <div className="container mx-auto px-4 py-12">
-          {/* Hero Section */}
           <div className="text-center mb-16">
             <h1 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent drop-shadow-md">
               Simple, Transparent Pricing
@@ -48,10 +47,7 @@ export function Pricing() {
             </p>
           </div>
 
-          {/* Pricing Cards */}
           <PricingPlans subscription={subscription} />
-
-          {/* FAQ Section */}
           <FAQ />
         </div>
       </PayPalScriptProvider>
