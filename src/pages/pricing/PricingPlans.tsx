@@ -64,16 +64,16 @@ const plans = [
 export function PricingPlans({ subscription }: { subscription: any }) {
   const { toast } = useToast();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const openModal = (planName: string) => {
+  const openDialog = (planName: string) => {
     setSelectedPlan(planName);
-    setIsModalOpen(true);
+    setIsDialogOpen(true);
   };
 
-  const closeModal = () => {
+  const closeDialog = () => {
     setSelectedPlan(null);
-    setIsModalOpen(false);
+    setIsDialogOpen(false);
   };
 
   const handleSubscriptionSuccess = (planName: string) => {
@@ -82,7 +82,7 @@ export function PricingPlans({ subscription }: { subscription: any }) {
       description: `You are now subscribed to the ${planName} plan.`,
       variant: "default",
     });
-    closeModal();
+    closeDialog();
   };
 
   return (
@@ -142,7 +142,7 @@ export function PricingPlans({ subscription }: { subscription: any }) {
               ) : (
                 <Button
                   className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={() => openModal(plan.name)}
+                  onClick={() => openDialog(plan.name)}
                 >
                   Subscribe to {plan.name}
                 </Button>
@@ -152,7 +152,7 @@ export function PricingPlans({ subscription }: { subscription: any }) {
         </Card>
       ))}
 
-      <Dialog open={isModalOpen && !!selectedPlan} onOpenChange={setIsModalOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Subscribe to {selectedPlan} Plan</DialogTitle>
@@ -172,7 +172,7 @@ export function PricingPlans({ subscription }: { subscription: any }) {
             )}
             <Button
               className="w-full py-3 bg-gray-200 hover:bg-gray-300"
-              onClick={closeModal}
+              onClick={closeDialog}
             >
               Cancel
             </Button>
