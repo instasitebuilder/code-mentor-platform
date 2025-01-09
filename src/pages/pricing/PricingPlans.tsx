@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PayPalButton } from "@/components/PayPalButton";
 import { useToast } from "@/components/ui/use-toast";
+import { Modal } from "@/components/ui/modal"; // Import your modal component
 
 const plans = [
   {
@@ -60,12 +62,26 @@ interface PricingPlansProps {
 export function PricingPlans({ subscription }: PricingPlansProps) {
   const { toast } = useToast();
 
+  const [selectedPlan, setSelectedPlan] = useState<null | string>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = (planName: string) => {
+    setSelectedPlan(planName);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedPlan(null);
+    setIsModalOpen(false);
+  };
+
   const handleSubscriptionSuccess = (planName: string) => {
     toast({
       title: "Subscription Successful!",
       description: `You are now subscribed to the ${planName} plan.`,
       variant: "success",
     });
+    closeModal();
   };
 
   return (
@@ -114,7 +130,7 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
                 </li>
               ))}
             </ul>
-            <div className="mt-6 space-y-4">
+            <div className="mt-6">
               {plan.name === "Free" ? (
                 <Button
                   className="w-full py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -125,35 +141,53 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
                     : "Get Started Free"}
                 </Button>
               ) : (
-                <div className="space-y-4">
-                  {/* PayPal Button for Pro and Enterprise */}
-                  <PayPalButton
-                    amount={plan.price.replace("$", "")}
-                    planType={plan.name.toLowerCase() as "pro" | "enterprise"}
-                    onSuccess={() => handleSubscriptionSuccess(plan.name)}
-                  />
-                  {/* Additional Button to Subscribe */}
-                  <Button
-                    className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => handleSubscriptionSuccess(plan.name)}
-                  >
-                    Subscribe to {plan.name}
-                  </Button>
-                </div>
-              )}
-              {subscription?.subscription_type === plan.name.toLowerCase() && (
                 <Button
-                  className="w-full py-3"
-                  variant="outline"
-                  disabled
+                  className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={() => openModal(plan.name)}
                 >
-                  Current Plan
+                  Subscribe to {plan.name}
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
       ))}
+
+      {/* Modal for Payment Options */}
+      {isModalOpen && selectedPlan && (
+        <Modal onClose={closeModal}>
+          <div className="p-6">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              Subscribe to {selectedPlan} Plan
+            </h2>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              Select a payment method to proceed with your subscription.
+            </p>
+            <div className="mt-6 space-y-4">
+              <Button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white">
+                Pay with Debit Card
+              </Button>
+              <PayPalButton
+                amount={
+                  selectedPlan === "Pro"
+                    ? "5"
+                    : selectedPlan === "Enterprise"
+                    ? "20"
+                    : "0"
+                }
+                planType={selectedPlan.toLowerCase() as "pro" | "enterprise"}
+                onSuccess={() => handleSubscriptionSuccess(selectedPlan)}
+              />
+              <Button
+                className="w-full py-3 bg-gray-200 hover:bg-gray-300"
+                onClick={closeModal}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
