@@ -91,9 +91,7 @@ export function PricingPlans({ subscription }: { subscription: any }) {
         <Card
           key={plan.name}
           className={`relative transition-transform transform hover:scale-105 ${
-            plan.popular
-              ? "border-4 border-purple-500 shadow-xl"
-              : "border border-gray-300"
+            plan.popular ? "border-4 border-purple-500 shadow-xl" : "border border-gray-300"
           }`}
         >
           {plan.popular && (
@@ -167,7 +165,7 @@ export function PricingPlans({ subscription }: { subscription: any }) {
             {selectedPlan && (
               <PayPalButton
                 amount={selectedPlan === "Pro" ? "5" : selectedPlan === "Enterprise" ? "20" : "0"}
-                planType={selectedPlan.toLowerCase() as "pro" | "enterprise"}
+                planType={selectedPlan.toLowerCase()}
               />
             )}
             <Button
@@ -182,5 +180,3 @@ export function PricingPlans({ subscription }: { subscription: any }) {
     </div>
   );
 }
-
-export default PricingPlans;
