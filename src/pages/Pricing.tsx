@@ -33,7 +33,7 @@ export function Pricing() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <PayPalScriptProvider options={{ 
-        clientId: process.env.VITE_PAYPAL_CLIENT_ID || "",
+        clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "",
         currency: "USD",
         intent: "capture"
       }}>
