@@ -4,7 +4,13 @@ import { Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PayPalButton } from "@/components/PayPalButton";
 import { useToast } from "@/components/ui/use-toast";
-import { Modal } from "@/components/ui/modal"; // Import your modal component
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const plans = [
   {
@@ -55,14 +61,9 @@ const plans = [
   },
 ];
 
-interface PricingPlansProps {
-  subscription: any;
-}
-
-export function PricingPlans({ subscription }: PricingPlansProps) {
+export function PricingPlans({ subscription }: { subscription: any }) {
   const { toast } = useToast();
-
-  const [selectedPlan, setSelectedPlan] = useState<null | string>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openModal = (planName: string) => {
@@ -111,9 +112,7 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
                   {plan.price}
                 </span>
                 {plan.name !== "Free" && (
-                  <span className="text-gray-600 dark:text-gray-400">
-                    /month
-                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">/month</span>
                 )}
               </div>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -153,41 +152,35 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
         </Card>
       ))}
 
-      {/* Modal for Payment Options */}
-      {isModalOpen && selectedPlan && (
-        <Modal onClose={closeModal}>
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-              Subscribe to {selectedPlan} Plan
-            </h2>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+      <Dialog open={isModalOpen && !!selectedPlan} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Subscribe to {selectedPlan} Plan</DialogTitle>
+            <DialogDescription>
               Select a payment method to proceed with your subscription.
-            </p>
-            <div className="mt-6 space-y-4">
-              <Button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white">
-                Pay with Debit Card
-              </Button>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-6 space-y-4">
+            <Button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white">
+              Pay with Debit Card
+            </Button>
+            {selectedPlan && (
               <PayPalButton
-                amount={
-                  selectedPlan === "Pro"
-                    ? "5"
-                    : selectedPlan === "Enterprise"
-                    ? "20"
-                    : "0"
-                }
+                amount={selectedPlan === "Pro" ? "5" : selectedPlan === "Enterprise" ? "20" : "0"}
                 planType={selectedPlan.toLowerCase() as "pro" | "enterprise"}
-                onSuccess={() => handleSubscriptionSuccess(selectedPlan)}
               />
-              <Button
-                className="w-full py-3 bg-gray-200 hover:bg-gray-300"
-                onClick={closeModal}
-              >
-                Cancel
-              </Button>
-            </div>
+            )}
+            <Button
+              className="w-full py-3 bg-gray-200 hover:bg-gray-300"
+              onClick={closeModal}
+            >
+              Cancel
+            </Button>
           </div>
-        </Modal>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+export default PricingPlans;
