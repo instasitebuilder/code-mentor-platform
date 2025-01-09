@@ -8,77 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    description: "Perfect for getting started",
-    features: [
-      "Basic coding challenges",
-      "Community access",
-      "Basic progress tracking",
-      "Limited peer practice sessions (2 free trials)",
-      "Public leaderboard access",
-    ],
-    popular: false,
-  },
-  {
-    name: "Pro",
-    price: "$5",
-    description: "Best for serious learners",
-    features: [
-      "All Free features",
-      "Advanced coding challenges",
-      "Priority community support",
-      "Detailed progress analytics",
-      "Unlimited peer practice sessions",
-      "Custom study plans",
-      "Interview preparation tools",
-      "Premium learning resources",
-    ],
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "$20",
-    description: "For teams and organizations",
-    features: [
-      "All Pro features",
-      "Custom challenge creation",
-      "Team management dashboard",
-      "API access",
-      "Dedicated support",
-      "Custom integrations",
-      "Advanced analytics",
-      "Priority feature requests",
-      "Custom branding options",
-    ],
-    popular: false,
-  },
-];
-
-const frequentlyAskedQuestions = [
-  {
-    question: "Can I switch plans later?",
-    answer:
-      "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.",
-  },
-  {
-    question: "Is there a student discount?",
-    answer:
-      "Yes! Students can get 50% off the Pro plan with a valid student email address.",
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer:
-      "We accept all major credit cards, PayPal, and bank transfers for Enterprise plans.",
-  },
-  {
-    question: "Can I get a refund?",
-    answer:
-      "Yes, we offer a 30-day money-back guarantee for all paid plans.",
-  },
-];
+// Move plans data to a separate file to reduce file size
+import { plans, frequentlyAskedQuestions } from "@/data/pricing-data";
 
 export function Pricing() {
   const { user } = useAuth();
@@ -103,7 +34,7 @@ export function Pricing() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       <PayPalScriptProvider options={{ 
-        "client-id": process.env.VITE_PAYPAL_CLIENT_ID || "",
+        clientId: process.env.VITE_PAYPAL_CLIENT_ID || "",
         currency: "USD"
       }}>
         <div className="container mx-auto px-4 py-12">

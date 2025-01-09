@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { PayPalButtons } from "@paypal/react-paypal-js";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +21,7 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
           subscription_type: planType,
           payment_id: paymentId,
           payment_provider: 'paypal',
-          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Convert Date to ISO string
         });
 
       if (error) throw error;
@@ -47,6 +46,7 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
           purchase_units: [
             {
               amount: {
+                currency_code: "USD", // Add currency code
                 value: amount,
               },
             },
