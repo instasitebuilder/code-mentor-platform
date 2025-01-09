@@ -68,6 +68,33 @@ export type Database = {
           },
         ]
       }
+      free_trial_usage: {
+        Row: {
+          created_at: string | null
+          feature_type: string
+          id: string
+          last_used: string | null
+          usage_count: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          feature_type: string
+          id?: string
+          last_used?: string | null
+          usage_count?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          feature_type?: string
+          id?: string
+          last_used?: string | null
+          usage_count?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       hr_interview_questions: {
         Row: {
           audio_response_url: string | null
@@ -628,6 +655,45 @@ export type Database = {
           },
         ]
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string
+          payment_id: string | null
+          payment_provider: string | null
+          start_date: string | null
+          subscription_type:
+            | Database["public"]["Enums"]["subscription_type"]
+            | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_provider?: string | null
+          start_date?: string | null
+          subscription_type?:
+            | Database["public"]["Enums"]["subscription_type"]
+            | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_provider?: string | null
+          start_date?: string | null
+          subscription_type?:
+            | Database["public"]["Enums"]["subscription_type"]
+            | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       daily_user_scores: {
@@ -652,6 +718,12 @@ export type Database = {
       }
     }
     Functions: {
+      increment_trial_usage: {
+        Args: {
+          feature: string
+        }
+        Returns: boolean
+      }
       is_admin: {
         Args: {
           user_id: string
@@ -660,7 +732,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      subscription_type: "free" | "pro" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
