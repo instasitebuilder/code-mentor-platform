@@ -85,6 +85,14 @@ export function PricingPlans({ subscription }: { subscription: any }) {
     closeDialog();
   };
 
+  const getPlanType = (plan: string): "pro" | "enterprise" => {
+    const lowercasePlan = plan.toLowerCase();
+    if (lowercasePlan === "pro" || lowercasePlan === "enterprise") {
+      return lowercasePlan as "pro" | "enterprise";
+    }
+    throw new Error(`Invalid plan type: ${plan}`);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
       {plans.map((plan) => (
@@ -162,10 +170,10 @@ export function PricingPlans({ subscription }: { subscription: any }) {
             <Button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white">
               Pay with Debit Card
             </Button>
-            {selectedPlan && (
+            {selectedPlan && selectedPlan !== "Free" && (
               <PayPalButton
                 amount={selectedPlan === "Pro" ? "5" : selectedPlan === "Enterprise" ? "20" : "0"}
-                planType={selectedPlan.toLowerCase()}
+                planType={getPlanType(selectedPlan)}
               />
             )}
             <Button
