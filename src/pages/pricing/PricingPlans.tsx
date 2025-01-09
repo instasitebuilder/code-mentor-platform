@@ -4,7 +4,7 @@ import { Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PayPalButton } from "@/components/PayPalButton";
 import { useToast } from "@/components/ui/use-toast";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Modal } from "@/components/ui/modal"; // Import your modal component
 
 const plans = [
   {
@@ -61,6 +61,7 @@ interface PricingPlansProps {
 
 export function PricingPlans({ subscription }: PricingPlansProps) {
   const { toast } = useToast();
+
   const [selectedPlan, setSelectedPlan] = useState<null | string>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -152,30 +153,41 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
         </Card>
       ))}
 
-      <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Subscribe to {selectedPlan} Plan</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6 space-y-4">
-            <Button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white">
-              Pay with Debit Card
-            </Button>
-            {selectedPlan && (
+      {/* Modal for Payment Options */}
+      {isModalOpen && selectedPlan && (
+        <Modal onClose={closeModal}>
+          <div className="p-6">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              Subscribe to {selectedPlan} Plan
+            </h2>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              Select a payment method to proceed with your subscription.
+            </p>
+            <div className="mt-6 space-y-4">
+              <Button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white">
+                Pay with Debit Card
+              </Button>
               <PayPalButton
-                amount={selectedPlan === "Pro" ? "5" : "20"}
+                amount={
+                  selectedPlan === "Pro"
+                    ? "5"
+                    : selectedPlan === "Enterprise"
+                    ? "20"
+                    : "0"
+                }
                 planType={selectedPlan.toLowerCase() as "pro" | "enterprise"}
+                onSuccess={() => handleSubscriptionSuccess(selectedPlan)}
               />
-            )}
-            <Button
-              className="w-full py-3 bg-gray-200 hover:bg-gray-300"
-              onClick={closeModal}
-            >
-              Cancel
-            </Button>
+              <Button
+                className="w-full py-3 bg-gray-200 hover:bg-gray-300"
+                onClick={closeModal}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </Modal>
+      )}
     </div>
   );
 }
