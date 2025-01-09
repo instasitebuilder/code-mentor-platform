@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PayPalButton } from "@/components/PayPalButton";
+import { useToast } from "@/components/ui/use-toast";
 
 const plans = [
   {
@@ -57,6 +58,16 @@ interface PricingPlansProps {
 }
 
 export function PricingPlans({ subscription }: PricingPlansProps) {
+  const { toast } = useToast();
+
+  const handleSubscriptionSuccess = (planName: string) => {
+    toast({
+      title: "Subscription Successful!",
+      description: `You are now subscribed to the ${planName} plan.`,
+      variant: "success",
+    });
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
       {plans.map((plan) => (
@@ -103,18 +114,34 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
                 </li>
               ))}
             </ul>
-            {plan.name === "Free" ? (
-              <Button className="w-full py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
-                Current Plan
-              </Button>
-            ) : (
-              subscription?.subscription_type !== plan.name.toLowerCase() && (
-                <PayPalButton 
-                  amount={plan.price.replace("$", "")} 
-                  planType={plan.name.toLowerCase() as 'pro' | 'enterprise'} 
-                />
-              )
-            )}
+            <div className="mt-6">
+              {plan.name === "Free" ? (
+                <Button 
+                  className="w-full py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                  disabled={subscription?.subscription_type === 'free'}
+                >
+                  {subscription?.subscription_type === 'free' ? 'Current Plan' : 'Get Started Free'}
+                </Button>
+              ) : (
+                subscription?.subscription_type !== plan.name.toLowerCase() && (
+                  <div className="space-y-4">
+                    <PayPalButton 
+                      amount={plan.price.replace("$", "")} 
+                      planType={plan.name.toLowerCase() as 'pro' | 'enterprise'} 
+                    />
+                  </div>
+                )
+              )}
+              {subscription?.subscription_type === plan.name.toLowerCase() && (
+                <Button 
+                  className="w-full py-3"
+                  variant="outline"
+                  disabled
+                >
+                  Current Plan
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       ))}
