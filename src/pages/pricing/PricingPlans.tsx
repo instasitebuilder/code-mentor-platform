@@ -114,26 +114,35 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
                 </li>
               ))}
             </ul>
-            <div className="mt-6">
+            <div className="mt-6 space-y-4">
               {plan.name === "Free" ? (
-                <Button 
+                <Button
                   className="w-full py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-                  disabled={subscription?.subscription_type === 'free'}
+                  disabled={subscription?.subscription_type === "free"}
                 >
-                  {subscription?.subscription_type === 'free' ? 'Current Plan' : 'Get Started Free'}
+                  {subscription?.subscription_type === "free"
+                    ? "Current Plan"
+                    : "Get Started Free"}
                 </Button>
               ) : (
-                subscription?.subscription_type !== plan.name.toLowerCase() && (
-                  <div className="space-y-4">
-                    <PayPalButton 
-                      amount={plan.price.replace("$", "")} 
-                      planType={plan.name.toLowerCase() as 'pro' | 'enterprise'} 
-                    />
-                  </div>
-                )
+                <div className="space-y-4">
+                  {/* PayPal Button for Pro and Enterprise */}
+                  <PayPalButton
+                    amount={plan.price.replace("$", "")}
+                    planType={plan.name.toLowerCase() as "pro" | "enterprise"}
+                    onSuccess={() => handleSubscriptionSuccess(plan.name)}
+                  />
+                  {/* Additional Button to Subscribe */}
+                  <Button
+                    className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white"
+                    onClick={() => handleSubscriptionSuccess(plan.name)}
+                  >
+                    Subscribe to {plan.name}
+                  </Button>
+                </div>
               )}
               {subscription?.subscription_type === plan.name.toLowerCase() && (
-                <Button 
+                <Button
                   className="w-full py-3"
                   variant="outline"
                   disabled
