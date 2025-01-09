@@ -22,7 +22,7 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
           subscription_type: planType,
           payment_id: paymentId,
           payment_provider: 'paypal',
-          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
         });
 
       if (error) throw error;
@@ -44,9 +44,11 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
     <PayPalButtons
       createOrder={(data, actions) => {
         return actions.order.create({
+          intent: "CAPTURE",
           purchase_units: [
             {
               amount: {
+                currency_code: "USD",
                 value: amount,
               },
             },
