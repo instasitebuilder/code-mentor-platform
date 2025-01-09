@@ -79,7 +79,7 @@ export function PricingPlans({ subscription }: PricingPlansProps) {
     toast({
       title: "Subscription Successful!",
       description: `You are now subscribed to the ${planName} plan.`,
-      variant: "success",
+      variant: "default",
     });
     closeModal();
   };
