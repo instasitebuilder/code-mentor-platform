@@ -46,7 +46,9 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
         return actions.subscription.create({
           plan_id: planType === 'pro' ? 'P-PRO_PLAN_ID' : 'P-ENTERPRISE_PLAN_ID', // Replace with your actual PayPal plan IDs
           application_context: {
-            shipping_preference: 'NO_SHIPPING'
+            shipping_preference: 'NO_SHIPPING',
+            return_url: window.location.href,
+            cancel_url: window.location.href
           }
         });
       }}
