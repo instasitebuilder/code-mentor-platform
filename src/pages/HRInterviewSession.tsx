@@ -14,7 +14,7 @@ declare global {
 }
 
 export default function HRInterviewSession() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -28,6 +28,16 @@ export default function HRInterviewSession() {
   useEffect(() => {
     if (!user) {
       navigate('/login');
+      return;
+    }
+
+    if (!id) {
+      toast({
+        title: "Error",
+        description: "Invalid interview ID",
+        variant: "destructive",
+      });
+      navigate('/hr-interview');
       return;
     }
 
