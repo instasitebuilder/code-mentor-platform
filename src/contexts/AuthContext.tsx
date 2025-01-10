@@ -37,7 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Force logout and redirect to login
       supabase.auth.signOut();
       setUser(null);
-      navigate('/login');
+      if (location.pathname !== '/login') {
+        navigate('/login', { state: { from: location.pathname } });
+      }
     } else {
       toast({
         title: "Authentication Error",
@@ -51,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       setUser(null);
-      navigate('/');
+      navigate('/login');
     } catch (error: any) {
       console.error('Error logging out:', error);
       toast({
@@ -80,14 +82,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Redirect to index page after login
-      if (session?.user && location.pathname === '/login') {
+      if (event === 'SIGNED_IN' && location.pathname === '/login') {
         navigate('/');
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        navigate('/login');
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Handle successful token refresh
+        console.log('Token refreshed successfully');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, location]);
+  }, [navigate, location.pathname]);
 
   return (
     <AuthContext.Provider value={{ user, loading, logout }}>
