@@ -1,210 +1,197 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useHRInterview } from '@/hooks/useHRInterview';
-import { AIInterviewerIntro } from '@/components/AIInterviewerIntro';
-import { InterviewQuestionCard } from '@/components/InterviewQuestionCard';
-import { useToast } from '@/components/ui/use-toast';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { VideoPreview } from '@/components/interview/VideoPreview';
-import { InterviewHeader } from '@/components/interview/InterviewHeader';
-import { RecordingControls } from '@/components/interview/RecordingControls';
-import { MessageCircle, User, Mic, MicOff } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-
-const MAX_QUESTIONS = 5;
-const MAX_TIME_SECONDS = 600; // 10 minutes
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function HRInterviewSession() {
   const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcription, setTranscription] = useState('');
-  const [introCompleted, setIntroCompleted] = useState(false);
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [questions, setQuestions] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [timeSpent, setTimeSpent] = useState(0);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  
-  const {
-    responses,
-    setResponses,
-    isLoading,
-    interviewDetails,
-    handleResponseSubmit,
-    currentQuestion,
-  } = useHRInterview(id!);
+  const [transcribedText, setTranscribedText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const aiVoice = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchInterviewDetails = async () => {
       try {
-        const response = await fetch('/hr-interview-questions.json');
-        const data = await response.json();
-        
-        const firstQuestion = data.questions[0];
-        const remainingQuestions = data.questions.slice(1);
-        const shuffledQuestions = remainingQuestions.sort(() => Math.random() - 0.5);
-        const selectedQuestions = [firstQuestion, ...shuffledQuestions.slice(0, MAX_QUESTIONS - 1)];
-        
-        setQuestions(selectedQuestions);
+        const { data: interview, error: interviewError } = await supabase
+          .from('hr_interviews')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (interviewError || !interview) throw interviewError;
+
+        // Get 10 questions
+        const { data: fetchedQuestions, error: questionError } = await supabase
+          .from('questions')
+          .select('*')
+          .eq('interview_id', id)
+          .limit(10);
+
+        if (questionError || !fetchedQuestions) throw questionError;
+        setQuestions(fetchedQuestions.map((q: any) => q.question));
       } catch (error) {
-        console.error('Error loading questions:', error);
+        console.error('Error fetching interview details:', error);
         toast({
           title: "Error",
-          description: "Failed to load interview questions",
-          variant: "destructive"
+          description: "Failed to setup interview session.",
+          variant: "destructive",
         });
+        navigate('/hr-interview');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (interviewDetails) {
-      fetchQuestions();
-    }
-  }, [interviewDetails, toast]);
+    fetchInterviewDetails();
+  }, [id, navigate, toast, user]);
 
-  useEffect(() => {
-    if (timeSpent >= MAX_TIME_SECONDS) {
-      handleTimeUp();
-    }
-  }, [timeSpent]);
-
-  const handleTimeUp = async () => {
-    try {
-      await supabase
-        .from('hr_interviews')
-        .update({ 
-          timer_completed: true,
-          time_spent_seconds: timeSpent,
-          status: 'completed'
-        })
-        .eq('id', id);
-
+  const startRecording = () => {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
       toast({
-        title: "Time's up!",
-        description: "Your interview session has ended.",
+        title: "Unsupported Feature",
+        description: "Speech recognition is not supported on this browser.",
+        variant: "destructive",
       });
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error updating interview:', error);
+      return;
     }
-  };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      
-      const audioChunks: BlobPart[] = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
 
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        
-        if (currentQuestion) {
-          const formData = new FormData();
-          formData.append('audio', audioBlob);
-          try {
-            const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-              method: 'POST',
-              body: formData,
-              headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-              },
-            });
-            const data = await response.json();
-            setTranscription(data.text);
-            
-            if (currentQuestion) {
-              setResponses(prev => ({
-                ...prev,
-                [currentQuestion.id]: data.text
-              }));
-            }
-          } catch (error) {
-            console.error('Error transcribing audio:', error);
-          }
-        }
-      };
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0].transcript)
+        .join('');
+      setTranscribedText(transcript);
+    };
 
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Error starting recording:", err);
-    }
+    recognition.start();
+    setIsRecording(true);
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+    if (isRecording) {
+      window.SpeechRecognition?.stop();
       setIsRecording(false);
     }
   };
 
+  const handleNextQuestion = async () => {
+    try {
+      await supabase
+        .from('hr_responses')
+        .insert({
+          interview_id: id,
+          question: questions[currentQuestionIndex],
+          response: transcribedText,
+        });
+
+      setTranscribedText('');
+      setCurrentQuestionIndex((prev) => prev + 1);
+    } catch (error) {
+      console.error('Error saving response:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save response.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const speakQuestion = (question: string) => {
+    if (!aiVoice.current) {
+      aiVoice.current = new SpeechSynthesisUtterance();
+      aiVoice.current.lang = 'en-US';
+      aiVoice.current.pitch = 1;
+      aiVoice.current.rate = 1;
+    }
+    aiVoice.current.text = question;
+    speechSynthesis.speak(aiVoice.current);
+  };
+
+  useEffect(() => {
+    if (questions.length > 0 && currentQuestionIndex < questions.length) {
+      speakQuestion(questions[currentQuestionIndex]);
+    }
+  }, [currentQuestionIndex, questions]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (currentQuestionIndex >= questions.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <h2 className="text-2xl font-bold">Thank you for completing the interview!</h2>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8">
-      <div className="container mx-auto max-w-6xl">
-        <InterviewHeader onTimeUpdate={setTimeSpent} />
-
-        <VideoPreview className="fixed top-4 right-4 w-64 h-48 rounded-lg overflow-hidden shadow-lg border-2 border-primary" />
-
+    <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+      <div className="container mx-auto px-4 py-8 text-white">
         <div className="max-w-4xl mx-auto space-y-8">
-          {!introCompleted ? (
-            <Card className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 animate-fade-in">
-              <div className="flex items-center space-x-2 mb-4">
-                <User className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-semibold">Welcome to Your Interview</h2>
-              </div>
-              <AIInterviewerIntro onIntroComplete={() => setIntroCompleted(true)} />
-            </Card>
-          ) : (
-            questions[currentQuestionIndex] && (
-              <Card className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <MessageCircle className="w-6 h-6 text-primary" />
-                  <h2 className="text-xl font-semibold">Interview Question</h2>
-                </div>
-                
-                <InterviewQuestionCard
-                  questions={questions}
-                  currentQuestion={questions[currentQuestionIndex].question}
-                  questionNumber={currentQuestionIndex + 1}
-                  totalQuestions={MAX_QUESTIONS}
-                  transcription={transcription}
-                  isRecording={isRecording}
-                  onStartRecording={startRecording}
-                  onStopRecording={stopRecording}
-                  onSubmit={handleResponseSubmit}
-                  onNextQuestion={async () => {
-                    const isComplete = await handleResponseSubmit();
-                    if (currentQuestionIndex < MAX_QUESTIONS - 1) {
-                      setCurrentQuestionIndex(prev => prev + 1);
-                      setTranscription('');
-                    } else if (isComplete) {
-                      navigate('/dashboard');
-                    }
-                  }}
-                />
-                
-                <RecordingControls
-                  isRecording={isRecording}
-                  onStartRecording={startRecording}
-                  onStopRecording={stopRecording}
-                />
-              </Card>
-            )
-          )}
+          <div className="bg-white text-gray-900 p-8 rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold mb-6 text-center">AI Interview Assistant</h2>
+
+            <div className="flex justify-center mb-4">
+              <img
+                src="/ai-avatar.png" // Replace with a real AI avatar image URL
+                alt="AI Assistant"
+                className="w-24 h-24 rounded-full"
+              />
+            </div>
+
+            <h3 className="text-lg font-semibold mb-2">
+              Question {currentQuestionIndex + 1}/{questions.length}:
+            </h3>
+            <p className="text-xl">{questions[currentQuestionIndex]}</p>
+
+            <textarea
+              value={transcribedText}
+              readOnly
+              className="w-full mt-4 p-4 bg-gray-200 rounded-lg text-black"
+              rows={5}
+            />
+
+            <div className="flex gap-4 mt-6">
+              <Button
+                onClick={isRecording ? stopRecording : startRecording}
+                variant={isRecording ? "destructive" : "default"}
+              >
+                {isRecording ? 'Stop Recording' : 'Start Recording'}
+              </Button>
+              <Button onClick={handleNextQuestion} disabled={!transcribedText}>
+                Next Question
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
