@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthError } from '@supabase/supabase-js';
+import { User, AuthError, AuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -101,7 +101,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Handle session refresh errors
       if (event === 'TOKEN_REFRESHED' && !session) {
-        handleAuthError(new Error('Session refresh failed'));
+        const error = new AuthApiError('Session refresh failed', 403);
+        handleAuthError(error);
       }
     });
 
