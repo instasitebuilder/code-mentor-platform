@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 export default function HRInterviewSession() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -34,15 +41,14 @@ export default function HRInterviewSession() {
 
         if (interviewError || !interview) throw interviewError;
 
-        // Get 10 questions
+        // Get questions from hr_interview_questions table
         const { data: fetchedQuestions, error: questionError } = await supabase
-          .from('questions')
-          .select('*')
-          .eq('interview_id', id)
-          .limit(10);
+          .from('hr_interview_questions')
+          .select('question')
+          .eq('interview_id', id);
 
         if (questionError || !fetchedQuestions) throw questionError;
-        setQuestions(fetchedQuestions.map((q: any) => q.question));
+        setQuestions(fetchedQuestions.map(q => q.question));
       } catch (error) {
         console.error('Error fetching interview details:', error);
         toast({
@@ -69,16 +75,15 @@ export default function HRInterviewSession() {
       return;
     }
 
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: any) => {
       const transcript = Array.from(event.results)
-        .map((result) => result[0].transcript)
+        .map((result: any) => result[0].transcript)
         .join('');
       setTranscribedText(transcript);
     };
@@ -100,13 +105,12 @@ export default function HRInterviewSession() {
 
   const handleNextQuestion = async () => {
     try {
+      // Save response to hr_interview_questions table
       await supabase
-        .from('hr_responses')
-        .insert({
-          interview_id: id,
-          question: questions[currentQuestionIndex],
-          response: transcribedText,
-        });
+        .from('hr_interview_questions')
+        .update({ audio_response_url: transcribedText })
+        .eq('interview_id', id)
+        .eq('question', questions[currentQuestionIndex]);
 
       setTranscribedText('');
       setCurrentQuestionIndex((prev) => prev + 1);
@@ -162,7 +166,7 @@ export default function HRInterviewSession() {
 
             <div className="flex justify-center mb-4">
               <img
-                src="/ai-avatar.png" // Replace with a real AI avatar image URL
+                src="/ai-avatar.png"
                 alt="AI Assistant"
                 className="w-24 h-24 rounded-full"
               />

@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Handle session refresh errors
       if (event === 'TOKEN_REFRESHED' && !session) {
-        const error = new AuthApiError('Session refresh failed', 403);
+        const error = new AuthApiError('Session refresh failed', 403, 'session_not_found');
         handleAuthError(error);
       }
     });
