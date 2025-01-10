@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (event === 'SIGNED_IN' && location.pathname === '/login') {
         navigate('/');
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT') {
         navigate('/login');
       } else if (event === 'TOKEN_REFRESHED') {
         // Handle successful token refresh
