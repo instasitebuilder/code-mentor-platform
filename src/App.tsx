@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { DevOpsFlow } from "@/components/DevOpsFlow";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -24,7 +25,7 @@ import TeamCoding from "./pages/TeamCoding";
 import DevOpsPractice from "./pages/DevOpsPractice";
 import HRInterview from "./pages/HRInterview";
 import HRInterviewSession from "./pages/HRInterviewSession";
-import Settings from "./pages/Settings"; // New import for Settings page
+import Settings from "./pages/Settings";
 import TechnicalRound from "./pages/TechnicalRound";
 
 const queryClient = new QueryClient({
@@ -155,26 +156,6 @@ const App = () => {
                         <ProtectedRoute>
                           <HRInterviewSession />
                         </ProtectedRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/admin" 
-                      element={
-                        <AdminRoute>
-                          <Admin />
-                        </AdminRoute>
-                      } 
-                    />
-                    <Route 
-                      path="/admin-panel" 
-                      element={
-                        <Navigate to="/admin" replace />
-                      } 
-                    />
-                    <Route 
-                      path="/admin-pannel" 
-                      element={
-                        <Navigate to="/admin" replace />
                       } 
                     />
                     <Route 
