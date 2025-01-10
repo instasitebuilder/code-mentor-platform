@@ -22,6 +22,7 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
           subscription_type: planType,
           payment_id: subscriptionId,
           payment_provider: 'paypal',
+          start_date: new Date().toISOString(),
           end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
         });
 
@@ -31,9 +32,12 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
       }
 
       toast({
-        title: "Subscription Successful",
+        title: "Success",
         description: `You are now subscribed to the ${planType} plan!`,
       });
+
+      // Refresh the page to update the UI
+      window.location.reload();
     } catch (error: any) {
       console.error('Subscription error:', error);
       toast({
@@ -47,22 +51,25 @@ export function PayPalButton({ amount, planType }: PayPalButtonProps) {
   return (
     <PayPalButtons
       createSubscription={(data, actions) => {
-        return actions.subscription.create({
-          plan_id: planType === 'pro' ? 'P-PRO_PLAN_ID' : 'P-ENTERPRISE_PLAN_ID', // Replace with your actual PayPal plan IDs
-          application_context: {
-            shipping_preference: 'NO_SHIPPING',
-            return_url: window.location.href,
-            cancel_url: window.location.href
-          }
-        }).catch(err => {
-          console.error('PayPal subscription creation error:', err);
-          toast({
-            title: "Error",
-            description: "Failed to create subscription. Please try again.",
-            variant: "destructive",
+        return actions.subscription
+          .create({
+            plan_id: planType === 'pro' ? 'P-PRO_PLAN_ID' : 'P-ENTERPRISE_PLAN_ID',
+            application_context: {
+              shipping_preference: 'NO_SHIPPING',
+              user_action: 'SUBSCRIBE_NOW',
+              return_url: window.location.href,
+              cancel_url: window.location.href
+            }
+          })
+          .catch(err => {
+            console.error('PayPal subscription creation error:', err);
+            toast({
+              title: "Error",
+              description: "Failed to create subscription. Please try again.",
+              variant: "destructive",
+            });
+            throw err;
           });
-          throw err;
-        });
       }}
       onApprove={async (data, actions) => {
         try {

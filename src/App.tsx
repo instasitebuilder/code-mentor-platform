@@ -24,8 +24,7 @@ import TeamCoding from "./pages/TeamCoding";
 import DevOpsPractice from "./pages/DevOpsPractice";
 import HRInterview from "./pages/HRInterview";
 import HRInterviewSession from "./pages/HRInterviewSession";
-import Admin from "./pages/Admin";
-import DevOpsFlow from "./components/DevOpsFlow";
+import Settings from "./pages/Settings"; // New import for Settings page
 import TechnicalRound from "./pages/TechnicalRound";
 
 const queryClient = new QueryClient({
@@ -53,6 +52,14 @@ const App = () => {
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/services" element={<Services />} />
+                    <Route 
+                      path="/settings" 
+                      element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      } 
+                    />
                     <Route 
                       path="/self-practice" 
                       element={
