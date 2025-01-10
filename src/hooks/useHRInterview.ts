@@ -15,6 +15,10 @@ export function useHRInterview(interviewId: string) {
   useEffect(() => {
     const fetchInterviewDetails = async () => {
       try {
+        if (!interviewId) {
+          throw new Error('Interview ID is required');
+        }
+
         const { data: interview, error: interviewError } = await supabase
           .from('hr_interviews')
           .select('*')
@@ -49,9 +53,10 @@ export function useHRInterview(interviewId: string) {
         console.error('Error fetching interview details:', error);
         toast({
           title: "Error",
-          description: "Failed to load interview details",
+          description: error instanceof Error ? error.message : "Failed to load interview details",
           variant: "destructive"
         });
+        setIsLoading(false);
       }
     };
 
