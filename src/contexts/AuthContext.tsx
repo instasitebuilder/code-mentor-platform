@@ -26,9 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleAuthError = (error: AuthError) => {
     console.error('Auth error:', error);
     
-    // Handle refresh token errors
-    if (error.message.includes('refresh_token_not_found') || 
-        error.message.includes('Invalid Refresh Token')) {
+    if (error.message.includes('session_not_found') || 
+        error.message.includes('Invalid Refresh Token') ||
+        error.message.includes('JWT expired')) {
       toast({
         title: "Session Expired",
         description: "Please log in again to continue.",
@@ -65,34 +65,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
+    // Get initial session and set up refresh
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (session?.user) {
+          setUser(session.user);
+        } else if (location.pathname !== '/login') {
+          navigate('/login');
+        }
+      } catch (error: any) {
         handleAuthError(error);
-        return;
+      } finally {
+        setLoading(false);
       }
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
-      setLoading(false);
       
       if (event === 'SIGNED_IN' && location.pathname === '/login') {
         navigate('/');
       } else if (event === 'SIGNED_OUT') {
         navigate('/login');
       } else if (event === 'TOKEN_REFRESHED') {
-        // Handle successful token refresh
         console.log('Token refreshed successfully');
+      }
+
+      // Handle session refresh errors
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        handleAuthError(new Error('Session refresh failed'));
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, location.pathname]);
 
   return (
