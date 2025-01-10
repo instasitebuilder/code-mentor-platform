@@ -26,9 +26,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleAuthError = (error: AuthError) => {
     console.error('Auth error:', error);
     
-    if (error.message.includes('session_not_found') || 
+    if (error.message.includes('refresh_token_not_found') || 
         error.message.includes('Invalid Refresh Token') ||
-        error.message.includes('JWT expired')) {
+        error.message.includes('JWT expired') ||
+        error.message.includes('session_not_found')) {
       toast({
         title: "Session Expired",
         description: "Please log in again to continue.",
@@ -101,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Handle session refresh errors
       if (event === 'TOKEN_REFRESHED' && !session) {
-        const error = new AuthApiError('Session refresh failed', 403, 'session_not_found');
+        const error = new AuthApiError('Session refresh failed', 403, 'refresh_token_not_found');
         handleAuthError(error);
       }
     });

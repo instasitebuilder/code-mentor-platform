@@ -12,16 +12,19 @@ export type Database = {
       admin_users: {
         Row: {
           created_at: string
+          email_verified: boolean | null
           id: string
           user_id: string | null
         }
         Insert: {
           created_at?: string
+          email_verified?: boolean | null
           id?: string
           user_id?: string | null
         }
         Update: {
           created_at?: string
+          email_verified?: boolean | null
           id?: string
           user_id?: string | null
         }
@@ -167,7 +170,22 @@ export type Database = {
           timer_completed?: boolean | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hr_interviews_profile_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_interviews_profile_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_statistics"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       interview_responses: {
         Row: {
@@ -692,7 +710,22 @@ export type Database = {
             | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_profile_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_profile_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_statistics"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
