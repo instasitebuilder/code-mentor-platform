@@ -5,17 +5,17 @@ import { AIInterviewerIntro } from '@/components/AIInterviewerIntro';
 import { InterviewQuestionCard } from '@/components/InterviewQuestionCard';
 import { QuestionTimer } from '@/components/QuestionTimer';
 import { useToast } from '@/components/ui/use-toast';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const MAX_QUESTIONS = 5;
 const MAX_TIME_SECONDS = 600; // 10 minutes
 
 export default function HRInterviewSession() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [transcription, setTranscription] = useState('');
   const [introCompleted, setIntroCompleted] = useState(false);
@@ -24,6 +24,13 @@ export default function HRInterviewSession() {
   const [timeSpent, setTimeSpent] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
   
   const {
     responses,
@@ -32,7 +39,7 @@ export default function HRInterviewSession() {
     interviewDetails,
     handleResponseSubmit,
     currentQuestion,
-  } = useHRInterview(id!);
+  } = useHRInterview(id || '');
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -40,7 +47,6 @@ export default function HRInterviewSession() {
         const response = await fetch('/hr-interview-questions.json');
         const data = await response.json();
         
-        // Get first question and 4 random questions
         const firstQuestion = data.questions[0];
         const remainingQuestions = data.questions.slice(1);
         const shuffledQuestions = remainingQuestions.sort(() => Math.random() - 0.5);
@@ -188,6 +194,7 @@ export default function HRInterviewSession() {
           ) : (
             questions[currentQuestionIndex] && (
               <InterviewQuestionCard
+                questions={questions}
                 currentQuestion={questions[currentQuestionIndex].question}
                 questionNumber={currentQuestionIndex + 1}
                 totalQuestions={MAX_QUESTIONS}
@@ -195,6 +202,7 @@ export default function HRInterviewSession() {
                 isRecording={isRecording}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
+                onSubmit={handleResponseSubmit}
                 onNextQuestion={async () => {
                   const isComplete = await handleResponseSubmit();
                   if (currentQuestionIndex < MAX_QUESTIONS - 1) {

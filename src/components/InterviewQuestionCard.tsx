@@ -18,6 +18,7 @@ interface InterviewQuestionCardProps {
 }
 
 export function InterviewQuestionCard({
+  questions,
   currentQuestion,
   questionNumber,
   totalQuestions,
@@ -25,6 +26,7 @@ export function InterviewQuestionCard({
   isRecording,
   onStartRecording,
   onStopRecording,
+  onSubmit,
   onNextQuestion,
 }: InterviewQuestionCardProps) {
   const progress = (questionNumber / totalQuestions) * 100;
