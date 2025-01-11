@@ -26,27 +26,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleAuthError = (error: AuthError) => {
     console.error('Auth error:', error);
     
-    if (error.message.includes('refresh_token_not_found') || 
-        error.message.includes('Invalid Refresh Token') ||
-        error.message.includes('JWT expired') ||
-        error.message.includes('session_not_found')) {
-      toast({
-        title: "Session Expired",
-        description: "Please log in again to continue.",
-        variant: "destructive",
-      });
-      // Force logout and redirect to login
-      supabase.auth.signOut();
-      setUser(null);
-      if (location.pathname !== '/login') {
-        navigate('/login', { state: { from: location.pathname } });
+    if (error instanceof AuthApiError) {
+      if (error.message.includes('refresh_token_not_found') || 
+          error.message.includes('Invalid Refresh Token') ||
+          error.message.includes('JWT expired') ||
+          error.message.includes('session_not_found')) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive",
+        });
+        supabase.auth.signOut().then(() => {
+          setUser(null);
+          if (location.pathname !== '/login') {
+            navigate('/login', { state: { from: location.pathname } });
+          }
+        });
+      } else {
+        toast({
+          title: "Authentication Error",
+          description: error.message,
+          variant: "destructive",
+        });
       }
-    } else {
-      toast({
-        title: "Authentication Error",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   };
 
@@ -66,7 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session and set up refresh
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -74,8 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
-        } else if (location.pathname !== '/login') {
-          navigate('/login');
+        } else if (location.pathname !== '/login' && 
+                  location.pathname !== '/signup' && 
+                  !location.pathname.startsWith('/reset-password')) {
+          navigate('/login', { state: { from: location.pathname } });
         }
       } catch (error: any) {
         handleAuthError(error);
@@ -86,24 +89,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      
-      if (event === 'SIGNED_IN' && location.pathname === '/login') {
-        navigate('/');
-      } else if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        const returnTo = location.state?.from || '/';
+        navigate(returnTo);
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        setUser(null);
         navigate('/login');
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed successfully');
-      }
-
-      // Handle session refresh errors
-      if (event === 'TOKEN_REFRESHED' && !session) {
-        const error = new AuthApiError('Session refresh failed', 403, 'refresh_token_not_found');
-        handleAuthError(error);
+        if (session?.user) {
+          setUser(session.user);
+          console.log('Token refreshed successfully');
+        } else {
+          const error = new AuthApiError('Session refresh failed', 400, 'refresh_token_not_found');
+          handleAuthError(error);
+        }
       }
     });
 

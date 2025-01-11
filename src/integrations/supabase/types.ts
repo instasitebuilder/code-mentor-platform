@@ -98,6 +98,150 @@ export type Database = {
         }
         Relationships: []
       }
+      hackathon_participants: {
+        Row: {
+          created_at: string
+          hackathon_id: string | null
+          id: string
+          score: number | null
+          time_spent: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          hackathon_id?: string | null
+          id?: string
+          score?: number | null
+          time_spent?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          hackathon_id?: string | null
+          id?: string
+          score?: number | null
+          time_spent?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hackathon_participants_hackathon_id_fkey"
+            columns: ["hackathon_id"]
+            isOneToOne: false
+            referencedRelation: "hackathons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hackathon_questions: {
+        Row: {
+          created_at: string
+          description: string
+          hackathon_id: string | null
+          id: string
+          points: number | null
+          test_cases: Json | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          hackathon_id?: string | null
+          id?: string
+          points?: number | null
+          test_cases?: Json | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          hackathon_id?: string | null
+          id?: string
+          points?: number | null
+          test_cases?: Json | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hackathon_questions_hackathon_id_fkey"
+            columns: ["hackathon_id"]
+            isOneToOne: false
+            referencedRelation: "hackathons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hackathon_test_cases: {
+        Row: {
+          created_at: string
+          expected_output: string
+          id: string
+          input: string
+          is_hidden: boolean | null
+          question_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expected_output: string
+          id?: string
+          input: string
+          is_hidden?: boolean | null
+          question_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expected_output?: string
+          id?: string
+          input?: string
+          is_hidden?: boolean | null
+          question_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hackathon_test_cases_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "hackathon_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hackathons: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          end_date: string
+          id: string
+          rules: string | null
+          start_date: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          end_date: string
+          id?: string
+          rules?: string | null
+          start_date: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          end_date?: string
+          id?: string
+          rules?: string | null
+          start_date?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       hr_interview_questions: {
         Row: {
           audio_response_url: string | null
